@@ -242,6 +242,31 @@ WHERE
         AND run_id = 1;
 ```
 
+- Example select from Run level View
+
+```sql
+SELECT
+    *
+FROM
+    `biosero_test`.`run_level_view`
+WHERE
+    automation_system = 'biosero'
+        AND run_id = 1;
+```
+
+- Example select from Sample level View
+
+```sql
+SELECT
+    *
+FROM
+    `biosero_test`.`sample_level_view`
+WHERE
+    automation_system = 'biosero'
+        AND run_id = 1
+ORDER BY run_id , destination_barcode , destination_coordinate;
+```
+
 ## Miscellaneous
 
 ### Updating the Table of Contents
