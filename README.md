@@ -1918,8 +1918,10 @@ SELECT
 FROM
     `biosero_uat`.`run_level_view`
 WHERE
-    automation_system = 'biosero'
-    AND run_id = 1;
+    automation_system_type = 'biosero'
+    AND automation_system_name = 'CPA'
+    AND system_run_id = 1
+;
 ```
 
 - Example select from Sample level View
@@ -1930,9 +1932,11 @@ SELECT
 FROM
     `biosero_uat`.`sample_level_view`
 WHERE
-    automation_system = 'biosero'
-    AND run_id = 1
-ORDER BY run_id , destination_barcode , destination_coordinate;
+    automation_system_type = 'biosero'
+    AND automation_system_name = 'CPA'
+    AND system_run_id = 1
+ORDER BY system_run_id, destination_barcode, destination_coordinate
+;
 ```
 
 ## Miscellaneous
