@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `biosero_uat`.`configurations` (
   `automation_system_name` ENUM('CPA', 'CPB') NOT NULL COMMENT 'the name for the workcell as used by the lab staff',
   `config_key` VARCHAR(255) NOT NULL COMMENT 'the key or name for this configuration key value pair',
   `config_value` VARCHAR(255) NOT NULL COMMENT 'the value for this configuration key value pair',
-  `description` VARCHAR(255) NOT NULL COMMENT 'the description of what this key value pairing is used for'
+  `description` VARCHAR(255) NOT NULL COMMENT 'the description of what this key value pairing is used for',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was created in the database',
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was updated in the database',
   PRIMARY KEY (`id`),
