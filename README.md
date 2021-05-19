@@ -49,7 +49,7 @@ WHERE
 ORDER BY id ASC;
 ```
 
-Example JSON representation for CPA configuration:
+Example JSON representation of the configuration for a workcell called 'CPA':
 
 ```json
 {

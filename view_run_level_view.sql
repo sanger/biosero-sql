@@ -5,6 +5,7 @@ CREATE VIEW `biosero_uat`.`run_level_view` AS
         r.automation_system_name,
         r.system_run_id,
         r.method,
+        r.user_id,
         r.start_time,
         r.end_time,
         TIMESTAMPDIFF(
