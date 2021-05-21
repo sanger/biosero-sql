@@ -6,7 +6,8 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 
 <!-- toc -->
 
-- [Schema Diagram](#schema-diagram)
+- [Schema diagram](#schema-diagram)
+- [List of tables and views](#list-of-tables-and-views)
 - [Database creation script](#database-creation-script)
 - [Table creation script](#table-creation-script)
 - [View creation scripts](#view-creation-scripts)
@@ -21,8 +22,24 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 
 <!-- tocstop -->
 
-## Schema Diagram
+## Schema diagram
 ![Alt text](schema.png?raw=true "Biosero Central Database Schema")
+
+## List of tables and views
+Tables
+- configurations - one row per configuration key value pair per system
+- automation_system_runs - one row per run
+- events - one row per event on a run (error or other)
+- source_plate_wells - one row per pickable sample plate well
+- control_plate_wells - one row per pickable control plate well (as defined in configurations table)
+- destination_plate_wells - one row per destination plate well
+
+Views
+- Run level view - one row per run
+- Sample level view - one row per picked sample
+
+
+Table and view descriptions can be found here: [table_and_view_descriptions.md](table_and_view_descriptions.md).
 
 ## Database creation script
 
