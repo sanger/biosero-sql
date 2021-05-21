@@ -29,7 +29,7 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 Tables
 - configurations - one row per configuration key value pair per system
 - automation_system_runs - one row per run
-- events - one row per event on a run (error or other)
+- run_events - one row per event on a run (error or other)
 - source_plate_wells - one row per pickable sample plate well
 - control_plate_wells - one row per pickable control plate well (as defined in configurations table)
 - destination_plate_wells - one row per destination plate well

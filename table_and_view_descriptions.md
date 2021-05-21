@@ -7,7 +7,7 @@ This table contains one row per configuration key value pair for each Biosero sy
 ## Automation System Runs table
 This table contains one row per run that occurs on either of the Biosero systems. That row is inserted at the start of the run with state ‘started’, and should be updated when the state of the run changes to ‘aborted’ or ‘completed’.
 
-## Events table
+## Run events table
 This table contains one row per event recorded on the system during a run. Initially this is intended for logging error events, but has been made flexible enough that other types of events could be stored. The details about the event are stored as a JSON value, to allow greater flexibility in the information that can be stored.
 
 ## Source plate wells table
