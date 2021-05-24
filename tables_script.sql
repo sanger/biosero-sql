@@ -1,21 +1,46 @@
+-- Automation systems table
+CREATE TABLE IF NOT EXISTS `biosero_uat`.`automation_systems` (
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',
+  `automation_system_name` VARCHAR(255) NOT NULL COMMENT 'the name for the workcell as used by the lab staff',
+  `automation_system_manufacturer` VARCHAR(255) NOT NULL COMMENT 'used to distinguish groups of cherrypicking systems supplied by different manufacturers',
+  `liquid_handler_serial_number` VARCHAR(255) NOT NULL COMMENT 'the serial number of the liquid handler on the workcell performing this run',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was created in the database',
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was updated in the database',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `unique_automation_system` UNIQUE
+  (`automation_system_name`,`automation_system_manufacturer`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
 -- Automation system runs table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`automation_system_runs` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',
-  `automation_system_type` ENUM('biosero') NOT NULL COMMENT 'used to distinguish groups of cherrypicking systems supplied by different manufacturers',
-  `automation_system_name` ENUM('CPA', 'CPB') NOT NULL COMMENT 'the name for the workcell as used by the lab staff',
+  `automation_system_id` INT NOT NULL COMMENT 'the foreign key id from the automation systems table',
   `system_run_id` INT NOT NULL UNIQUE COMMENT 'the run id as used by the workcell software',
   `method` VARCHAR(255) NOT NULL COMMENT 'the name of the method running on the workcell, including a version number',
   `user_id` VARCHAR(255) NOT NULL COMMENT 'the user id of the lab staff member performing the run',
   `start_time` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the date time when the run started',
   `end_time` DATETIME DEFAULT NULL COMMENT 'the date time when the run ended, whether completed or aborted',
   `state` ENUM('started','completed','aborted') NOT NULL COMMENT 'the state of the run',
-  `liquid_handler_serial_number` ENUM('h1000001','h1000002') NOT NULL COMMENT 'the serial number of the liquid handler on the workcell performing this run',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was created in the database',
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was updated in the database',
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (automation_system_id)
+  REFERENCES `biosero_uat`.`automation_systems`(`id`),
+  CONSTRAINT `automation_system_run_id` UNIQUE
+  (`system_run_id`,`automation_system_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+-- Run Configurations table
+CREATE TABLE IF NOT EXISTS `biosero_uat`.`run_configurations` (
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',
+  `automation_system_run_id` INT NOT NULL COMMENT 'the foreign key id from the automation system runs table, uniquely identifying the run',
   `configuration_used` JSON NOT NULL COMMENT 'the json representation of the configuration extracted from the configurations table that was used for this run',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was created in the database',
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was updated in the database',
   PRIMARY KEY (`id`),
-  CONSTRAINT `automation_system_run_id` UNIQUE
-  (`automation_system_name`,`system_run_id`)
+  FOREIGN KEY (automation_system_run_id)
+  REFERENCES `biosero_uat`.`automation_system_runs`(`id`),
+  CONSTRAINT `unique_automation_system_run_id` UNIQUE (`automation_system_run_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 -- Run Events table
