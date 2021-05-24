@@ -27,5 +27,5 @@ VALUES
 ('CPB', 'bv_barcode_prefixes_control', 'DN, DM', 'list of possible prefixes allowed for bed verification of the control plate barcodes', now(), now()),
 ('CPB', 'bv_barcode_prefixes_destination', 'HT, HZ', 'list of possible prefixes allowed for bed verification of the destination plate barcodes', now(), now()),
 ('CPB', 'bv_deck_barcode_control', 'DECKC123', 'barcode for the deck location of the control plate on the liquid handler for bed verification', now(), now()),
-('CPB', 'bv_deck_barcode_destination', 'DECKP123', 'barcode for the deck location of the destination plate on the liquid handler for bed verification', now(), now()),
+('CPB', 'bv_deck_barcode_destination', 'DECKP123', 'barcode for the deck location of the destination plate on the liquid handler for bed verification', now(), now())
 ;
