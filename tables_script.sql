@@ -1,21 +1,20 @@
 -- Automation systems table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`automation_systems` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',
-  `automation_system_name` VARCHAR(255) NOT NULL COMMENT 'the name for the workcell as used by the lab staff',
-  `automation_system_manufacturer` VARCHAR(255) NOT NULL COMMENT 'used to distinguish groups of cherrypicking systems supplied by different manufacturers',
-  `liquid_handler_serial_number` VARCHAR(255) NOT NULL COMMENT 'the serial number of the liquid handler on the workcell performing this run',
+  `automation_system_name` VARCHAR(255) UNIQUE NOT NULL COMMENT 'the name for the workcell as used by the lab staff',
+  `automation_system_manufacturer` VARCHAR(255) NOT NULL COMMENT 'used to distinguish groups of workcells supplied by different manufacturers',
+  `liquid_handler_serial_number` VARCHAR(255) NOT NULL COMMENT 'the serial number of the liquid handler on the workcell',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was created in the database',
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was updated in the database',
-  PRIMARY KEY (`id`),
-  CONSTRAINT `unique_automation_system` UNIQUE
-  (`automation_system_name`,`automation_system_manufacturer`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+  PRIMARY KEY (`id`)
+) COMMENT='This table contains one row for each automation system (or workcell).'
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 -- Automation system runs table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`automation_system_runs` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',
   `automation_system_id` INT NOT NULL COMMENT 'the foreign key id from the automation systems table',
-  `system_run_id` INT NOT NULL UNIQUE COMMENT 'the run id as used by the workcell software',
+  `system_run_id` INT NOT NULL COMMENT 'the run id as used by the workcell software',
   `method` VARCHAR(255) NOT NULL COMMENT 'the name of the method running on the workcell, including a version number',
   `user_id` VARCHAR(255) NOT NULL COMMENT 'the user id of the lab staff member performing the run',
   `start_time` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the date time when the run started',
@@ -26,9 +25,9 @@ CREATE TABLE IF NOT EXISTS `biosero_uat`.`automation_system_runs` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (automation_system_id)
   REFERENCES `biosero_uat`.`automation_systems`(`id`),
-  CONSTRAINT `automation_system_run_id` UNIQUE
-  (`system_run_id`,`automation_system_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+  CONSTRAINT `automation_system_run_id` UNIQUE (`system_run_id`,`automation_system_id`)
+) COMMENT='This table contains one row per run on an automation system.'
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 -- Run Configurations table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`run_configurations` (
@@ -41,7 +40,8 @@ CREATE TABLE IF NOT EXISTS `biosero_uat`.`run_configurations` (
   FOREIGN KEY (automation_system_run_id)
   REFERENCES `biosero_uat`.`automation_system_runs`(`id`),
   CONSTRAINT `unique_automation_system_run_id` UNIQUE (`automation_system_run_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) COMMENT='This table contains one row per run to record the configuration settings used for that run.'
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 -- Run Events table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`run_events` (
@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS `biosero_uat`.`run_events` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (automation_system_run_id)
   REFERENCES `biosero_uat`.`automation_system_runs`(`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) COMMENT='This table contains one row for each recorded event in a run.'
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 -- Source Plate Wells table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`source_plate_wells` (
@@ -69,7 +70,8 @@ CREATE TABLE IF NOT EXISTS `biosero_uat`.`source_plate_wells` (
   PRIMARY KEY (`id`),
   KEY `index_source_plate_wells_on_source_barcode` (`barcode`),
   CONSTRAINT `source_plate_well` UNIQUE (`barcode`,`coordinate`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) COMMENT='This table contains one row per pickable sample well per source plate.'
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 -- Control Plate Wells table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`control_plate_wells` (
@@ -84,7 +86,8 @@ CREATE TABLE IF NOT EXISTS `biosero_uat`.`control_plate_wells` (
   FOREIGN KEY (automation_system_run_id)
   REFERENCES `biosero_uat`.`automation_system_runs`(`id`),
   CONSTRAINT `control_plate_well` UNIQUE (`automation_system_run_id`,`barcode`,`coordinate`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) COMMENT='This table contains one row per pickable control well per control plate.'
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 -- Destination Plate Wells table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`destination_plate_wells` (
@@ -108,7 +111,8 @@ CREATE TABLE IF NOT EXISTS `biosero_uat`.`destination_plate_wells` (
   REFERENCES `biosero_uat`.`control_plate_wells`(`id`),
   FOREIGN KEY (automation_system_run_id)
   REFERENCES `biosero_uat`.`automation_system_runs`(`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) COMMENT='This table contains a row for each well in each destination plate, either empty or linked to a sample or control well once picked.'
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 -- Configurations table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`configurations` (
@@ -122,4 +126,5 @@ CREATE TABLE IF NOT EXISTS `biosero_uat`.`configurations` (
   PRIMARY KEY (`id`),
   CONSTRAINT `automation_system_name_config_key` UNIQUE
   (`automation_system_name`,`config_key`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+) COMMENT='This table contains one row per configuration key value pair for each automation system.'
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
