@@ -1,30 +1,49 @@
 -- select configuration for the workcell
-SELECT id, automation_system_name, config_key, config_value, description, created_at FROM `biosero_uat`.`configurations`
+SELECT id, automation_system_name, config_key, config_value, description, created_at
+FROM `biosero_uat`.`configurations`
 WHERE automation_system_name = 'CPA' ORDER BY id ASC;
 
 -- insert a new run row at the start of the run, with state 'started'
 INSERT INTO `biosero_uat`.`automation_system_runs` (
-  automation_system_type,
-  automation_system_name,
+  automation_system_id,
   system_run_id,
   method,
   user_id,
   start_time,
   state,
-  liquid_handler_serial_number,
-  configuration_used,
   created_at,
   updated_at
 )
 VALUES (
-  'biosero',
-  'CPA',
+  (SELECT id FROM `biosero_uat`.`automation_systems` WHERE
+  automation_system_manufacturer = 'biosero'
+  AND automation_system_name = 'CPA'
+  ),
   '1',
   'cp v1',
   'ab12',
   now(),
   'started',
-  'h1000001',
+  now(),
+  now()
+);
+
+-- insert a row to record the configurations used for this run
+INSERT INTO `biosero_uat`.`run_configurations` (
+  automation_system_run_id,
+  configuration_used,
+  created_at,
+  updated_at
+)
+VALUES (
+  (SELECT id FROM `biosero_uat`.`automation_system_runs`
+  WHERE automation_system_id = (
+    SELECT id FROM `biosero_uat`.`automation_systems`
+        WHERE automation_system_manufacturer = 'biosero'
+        AND automation_system_name = 'CPA'
+  )
+    AND system_run_id = 1
+  ),
   '{"configuration":{"CPA":{"version":"1","change_description":"moved the positive control","change_user_id":"ab1","control_coordinate_positive":"A1","control_coordinate_negative":"H12","control_excluded_destination_wells":"B5,B6","bv_barcode_prefixes_control":"DN, DM","bv_barcode_prefixes_destination":"HT, HS","bv_deck_barcode_control":"DECKC123","bv_deck_barcode_destination":"DECKP123"}}}',
   now(),
   now()
@@ -35,7 +54,16 @@ SELECT id FROM `biosero_uat`.`destination_plate_wells`
 WHERE barcode = 'HT_000001';
 
 -- select the id of the run
-SET @a_system_run_id := (SELECT id FROM `biosero_uat`.`automation_system_runs` WHERE automation_system_type = 'biosero' AND system_run_id = 1);
+SET @a_system_run_id := (
+  SELECT id
+  FROM `biosero_uat`.`automation_system_runs`
+  WHERE automation_system_id = (
+  SELECT id FROM `biosero_uat`.`automation_systems`
+        WHERE automation_system_manufacturer = 'biosero'
+        AND automation_system_name = 'CPA'
+  )
+  AND system_run_id = 1
+);
 
 -- create the empty destination plate with 96 wells
 INSERT INTO `biosero_uat`.`destination_plate_wells` (
@@ -1568,7 +1596,10 @@ SET
   end_time = now(),
   state = 'completed',
   updated_at = now()
-WHERE
-  automation_system_type = 'biosero'
-  AND system_run_id = 1
+WHERE automation_system_id = (
+  SELECT id FROM `biosero_uat`.`automation_systems`
+    WHERE automation_system_manufacturer = 'biosero'
+  AND automation_system_name = 'CPA'
+  )
+AND system_run_id = 1
 ;

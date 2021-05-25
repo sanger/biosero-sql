@@ -143,7 +143,7 @@ SELECT
 FROM
     `biosero_uat`.`run_level_view`
 WHERE
-    automation_system_type = 'biosero'
+    automation_system_manufacturer = 'biosero'
     AND automation_system_name = 'CPA'
     AND system_run_id = 1
 ;
@@ -157,7 +157,7 @@ SELECT
 FROM
     `biosero_uat`.`sample_level_view`
 WHERE
-    automation_system_type = 'biosero'
+    automation_system_manufacturer = 'biosero'
     AND automation_system_name = 'CPA'
     AND system_run_id = 1
 ORDER BY system_run_id, destination_barcode, destination_coordinate

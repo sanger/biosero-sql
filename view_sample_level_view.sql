@@ -1,10 +1,10 @@
 -- Sample Level View
 CREATE VIEW `biosero_uat`.`sample_level_view` AS
     SELECT
-        r.automation_system_type,
-        r.automation_system_name,
-        r.system_run_id,
-        r.method,
+        asys.automation_system_manufacturer,
+        asys.automation_system_name,
+        asysr.system_run_id,
+        asysr.method,
         dpw.barcode AS destination_barcode,
         dpw.coordinate AS destination_coordinate,
         spw.barcode AS source_barcode,
@@ -16,9 +16,11 @@ CREATE VIEW `biosero_uat`.`sample_level_view` AS
         cpw.coordinate AS control_coordinate,
         cpw.control
     FROM
-        `biosero_uat`.`automation_system_runs` r
+        `biosero_uat`.`automation_system_runs` asysr
+            JOIN `biosero_uat`.`automation_systems` asys
+                ON asysr.automation_system_id = asys.id
             INNER JOIN
-        `biosero_uat`.`destination_plate_wells` dpw ON dpw.automation_system_run_id = r.id
+        `biosero_uat`.`destination_plate_wells` dpw ON dpw.automation_system_run_id = asysr.id
             LEFT OUTER JOIN
         `biosero_uat`.`source_plate_wells` spw ON spw.id = dpw.source_plate_well_id
             LEFT OUTER JOIN
