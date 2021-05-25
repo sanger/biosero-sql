@@ -32,14 +32,13 @@ ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_c
 -- Run Configurations table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`run_configurations` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',
-  `automation_system_run_id` INT NOT NULL COMMENT 'the foreign key id from the automation system runs table, uniquely identifying the run',
+  `automation_system_run_id` INT UNIQUE NOT NULL COMMENT 'the foreign key id from the automation system runs table, uniquely identifying the run',
   `configuration_used` JSON NOT NULL COMMENT 'the json representation of the configuration extracted from the configurations table that was used for this run',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was created in the database',
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was updated in the database',
   PRIMARY KEY (`id`),
   FOREIGN KEY (automation_system_run_id)
-  REFERENCES `biosero_uat`.`automation_system_runs`(`id`),
-  CONSTRAINT `unique_automation_system_run_id` UNIQUE (`automation_system_run_id`)
+  REFERENCES `biosero_uat`.`automation_system_runs`(`id`)
 ) COMMENT='This table contains one row per run to record the configuration settings used for that run.'
 ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
