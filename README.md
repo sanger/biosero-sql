@@ -28,8 +28,10 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 ## List of tables and views
 Tables
 - configurations - one row per configuration key value pair per system
+- automation_systems - one row per automation system
 - automation_system_runs - one row per run
 - run_events - one row per event on a run (error or other)
+- run_configurations - one row per run to record the configuration used
 - source_plate_wells - one row per pickable sample plate well
 - control_plate_wells - one row per pickable control plate well (as defined in configurations table)
 - destination_plate_wells - one row per destination plate well
@@ -141,7 +143,7 @@ SELECT
 FROM
     `biosero_uat`.`run_level_view`
 WHERE
-    automation_system_type = 'biosero'
+    automation_system_manufacturer = 'biosero'
     AND automation_system_name = 'CPA'
     AND system_run_id = 1
 ;
@@ -155,7 +157,7 @@ SELECT
 FROM
     `biosero_uat`.`sample_level_view`
 WHERE
-    automation_system_type = 'biosero'
+    automation_system_manufacturer = 'biosero'
     AND automation_system_name = 'CPA'
     AND system_run_id = 1
 ORDER BY system_run_id, destination_barcode, destination_coordinate
