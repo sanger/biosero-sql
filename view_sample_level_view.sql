@@ -7,6 +7,11 @@ CREATE VIEW `biosero_uat`.`sample_level_view` AS
         asysr.method,
         dpw.barcode AS destination_barcode,
         dpw.coordinate AS destination_coordinate,
+        (CASE
+            WHEN spw.barcode is not null THEN 'sample'
+            WHEN cpw.barcode is not null THEN 'control'
+            ELSE 'empty'
+        END) AS well_content_type,
         spw.barcode AS source_barcode,
         spw.coordinate AS source_coordinate,
         spw.rna_id,
