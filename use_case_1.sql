@@ -1,3 +1,6 @@
+-- Assuming automation_systems_insert_example and configurations_insert_example
+-- have already been run
+
 -- select configuration for the workcell
 SELECT conf.id, asys.automation_system_name, conf.config_key, conf.config_value, conf.description, conf.created_at
 FROM `biosero_uat`.`configurations` conf
