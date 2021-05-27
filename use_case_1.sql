@@ -1,7 +1,9 @@
 -- select configuration for the workcell
-SELECT id, automation_system_name, config_key, config_value, description, created_at
-FROM `biosero_uat`.`configurations`
-WHERE automation_system_name = 'CPA' ORDER BY id ASC;
+SELECT conf.id, asys.automation_system_name, conf.config_key, conf.config_value, conf.description, conf.created_at
+FROM `biosero_uat`.`configurations` conf
+JOIN `biosero_uat`.`automation_systems` asys
+  ON conf.automation_system_id = asys.id
+WHERE asys.automation_system_name = 'CPA' ORDER BY conf.id ASC;
 
 -- insert a new run row at the start of the run, with state 'started'
 INSERT INTO `biosero_uat`.`automation_system_runs` (
