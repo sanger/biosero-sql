@@ -5,7 +5,8 @@ CREATE PROCEDURE `biosero_uat`.`createRunRecord` (
   IN input_system_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_system_run_id INT,
   IN input_gbg_method_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  IN input_user_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+  IN input_user_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN input_configuration JSON
 )
 BEGIN
   INSERT INTO `biosero_uat`.`automation_system_runs` (
@@ -41,8 +42,13 @@ BEGIN
   )
   VALUES (
     (
-      SELECT id FROM `biosero_uat`.`automation_systems`
-      WHERE automation_system_name = input_system_name
+      SELECT id FROM `biosero_uat`.`automation_system_runs`
+      WHERE automation_system_id = (
+        SELECT id FROM `biosero_uat`.`automation_systems`
+        WHERE automation_system_manufacturer = input_manufacturer
+        AND automation_system_name = input_system_name
+      )
+      AND system_run_id = input_system_run_id
     ),
     input_configuration,
     now(),
