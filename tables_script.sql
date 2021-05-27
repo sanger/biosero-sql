@@ -116,14 +116,16 @@ ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_c
 -- Configurations table
 CREATE TABLE IF NOT EXISTS `biosero_uat`.`configurations` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',
-  `automation_system_name` ENUM('CPA', 'CPB') NOT NULL COMMENT 'the name for the workcell as used by the lab staff',
+  `automation_system_id` INT NOT NULL COMMENT 'the foreign key id from the automation systems table',
   `config_key` VARCHAR(255) NOT NULL COMMENT 'the key or name for this configuration key value pair',
   `config_value` VARCHAR(255) NOT NULL COMMENT 'the value for this configuration key value pair',
   `description` VARCHAR(255) NOT NULL COMMENT 'the description of what this key value pairing is used for',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was created in the database',
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was updated in the database',
   PRIMARY KEY (`id`),
-  CONSTRAINT `automation_system_name_config_key` UNIQUE
-  (`automation_system_name`,`config_key`)
+  FOREIGN KEY (automation_system_id)
+  REFERENCES `biosero_uat`.`automation_systems`(`id`),
+  CONSTRAINT `automation_system_config_key` UNIQUE
+  (`automation_system_id`,`config_key`)
 ) COMMENT='This table contains one row per configuration key value pair for each automation system.'
 ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
