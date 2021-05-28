@@ -1,5 +1,10 @@
+-- drop the stored procedure
+DROP PROCEDURE IF EXISTS `biosero_uat`.`getConfigurationForSystem`;
+
+-- create the stored procedure
 DELIMITER $$
 
+-- Fetches the configuration key value pairs for the specified system
 CREATE PROCEDURE `biosero_uat`.`getConfigurationForSystem` (
   IN input_system_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )

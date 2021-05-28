@@ -1,5 +1,11 @@
+-- drop the stored procedure
+DROP PROCEDURE IF EXISTS `biosero_uat`.`createRunRecord`;
+
+-- create the stored procedure
 DELIMITER $$
 
+-- Creates a run record row at the start of a workcell run on the automation_system_runs table
+-- and a linked row on the configurations table
 CREATE PROCEDURE `biosero_uat`.`createRunRecord` (
   IN input_manufacturer VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_system_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -9,6 +15,8 @@ CREATE PROCEDURE `biosero_uat`.`createRunRecord` (
   IN input_configuration JSON
 )
 BEGIN
+  SET @automationSystemRunId = '';
+
   INSERT INTO `biosero_uat`.`automation_system_runs` (
     automation_system_id,
     system_run_id,
@@ -34,6 +42,8 @@ BEGIN
     now()
   );
 
+  SELECT LAST_INSERT_ID() INTO @automationSystemRunId;
+
   INSERT INTO `biosero_uat`.`run_configurations` (
     automation_system_run_id,
     configuration_used,
@@ -41,15 +51,7 @@ BEGIN
     updated_at
   )
   VALUES (
-    (
-      SELECT id FROM `biosero_uat`.`automation_system_runs`
-      WHERE automation_system_id = (
-        SELECT id FROM `biosero_uat`.`automation_systems`
-        WHERE automation_system_manufacturer = input_manufacturer
-        AND automation_system_name = input_system_name
-      )
-      AND system_run_id = input_system_run_id
-    ),
+    @automationSystemRunId,
     input_configuration,
     now(),
     now()
