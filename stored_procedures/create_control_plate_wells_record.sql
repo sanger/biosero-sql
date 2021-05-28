@@ -24,7 +24,8 @@ BEGIN
     updated_at
   )
   VALUES (
-    ( SELECT id FROM `biosero_uat`.`automation_system_runs`
+    (
+      SELECT id FROM `biosero_uat`.`automation_system_runs`
       WHERE automation_system_id = (
         SELECT id FROM `biosero_uat`.`automation_systems`
           WHERE automation_system_manufacturer = input_automation_system_manufacturer

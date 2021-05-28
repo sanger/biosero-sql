@@ -1,0 +1,41 @@
+-- drop the stored procedure
+DROP PROCEDURE IF EXISTS `biosero_uat`.`updateDestinationPlateWellWithControl`;
+
+-- create the stored procedure
+DELIMITER $$
+
+-- Updates a destination plate well row with a linked control well
+CREATE PROCEDURE `biosero_uat`.`updateDestinationPlateWellWithControl` (
+  IN input_automation_system_manufacturer VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN input_automation_system_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN input_system_run_id INT,
+  IN input_destination_barcode VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN input_destination_coordinate VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN input_control_plate_barcode VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN input_control_coordinate VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+)
+BEGIN
+
+  UPDATE `biosero_uat`.`destination_plate_wells`
+  SET
+    control_plate_well_id = (
+      SELECT id FROM `biosero_uat`.`control_plate_wells` cpw
+      WHERE cpw.automation_system_run_id = (
+        SELECT id FROM `biosero_uat`.`automation_system_runs`
+        WHERE automation_system_id = (
+          SELECT id FROM `biosero_uat`.`automation_systems`
+            WHERE automation_system_name = input_automation_system_name
+          )
+        AND system_run_id = input_system_run_id
+      )
+      AND cpw.barcode = input_control_plate_barcode
+      AND cpw.coordinate = input_control_coordinate
+    ),
+    updated_at = now()
+  WHERE barcode = input_destination_barcode
+  AND coordinate = input_destination_coordinate
+  ;
+
+END$$
+
+DELIMITER ;
