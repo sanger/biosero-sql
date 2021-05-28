@@ -11,11 +11,23 @@ CREATE PROCEDURE `biosero_uat`.`createRunRecord` (
   IN input_system_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_system_run_id INT,
   IN input_gbg_method_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  IN input_user_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  IN input_configuration JSON
+  IN input_user_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
   SET @automationSystemRunId = '';
+  SET @input_configuration = (
+    SELECT JSON_ARRAYAGG(
+      JSON_OBJECT(
+        'automation_system_name', automation_system_name, 
+        'automation_system_id', automation_system_id, 
+        'config_key', config_key, 
+        'config_value', config_value
+      )
+    ) 
+    FROM configurations 
+    INNER JOIN automation_systems 
+      ON automation_systems.id=configurations.automation_system_id
+  );
 
   INSERT INTO `biosero_uat`.`automation_system_runs` (
     automation_system_id,
@@ -52,7 +64,7 @@ BEGIN
   )
   VALUES (
     @automationSystemRunId,
-    input_configuration,
+    @input_configuration,
     now(),
     now()
   );
