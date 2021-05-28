@@ -1,5 +1,6 @@
--- Assuming automation_systems_insert_example and configurations_insert_example
--- have already been run
+-- This script assumes that the following scripts have already been run:
+--   automation_systems_insert_example.sql
+--   configurations_insert_example.sql
 
 -- select configuration for the workcell
 SELECT conf.id, asys.automation_system_name, conf.config_key, conf.config_value, conf.description, conf.created_at
