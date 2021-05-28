@@ -14,7 +14,11 @@ CREATE PROCEDURE `biosero_uat`.`createRunRecord` (
 )
 BEGIN
   -- Rollback if there is any error
-  DECLARE EXIT HANDLER FOR SQLEXCEPTION ROLLBACK;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+      SHOW ERRORS;  
+      ROLLBACK;
+    END;
 
   -- Start of any writing operations
   START TRANSACTION;
@@ -24,8 +28,6 @@ BEGIN
   SET @input_configuration = (
     SELECT JSON_ARRAYAGG(
       JSON_OBJECT(
-        'automation_system_name', automation_system_name, 
-        'automation_system_id', automation_system_id, 
         'config_key', config_key, 
         'config_value', config_value
       )
@@ -50,8 +52,7 @@ BEGIN
   VALUES (
     (
       SELECT id FROM `biosero_uat`.`automation_systems`
-      WHERE automation_system_manufacturer = input_manufacturer
-      AND automation_system_name = input_system_name
+      WHERE automation_system_name = input_system_name
     ),
     input_system_run_id,
     input_gbg_method_name,
