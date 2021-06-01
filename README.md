@@ -97,6 +97,7 @@ This query selects unpicked source plate wells for a source plate barcode e.g. i
 
 ```sql
 SELECT
+    dpw.id AS destination_id,
     spw.id,
     spw.barcode,
     spw.coordinate,
@@ -105,12 +106,11 @@ SELECT
     spw.lab_id
 FROM
     `biosero_uat`.`source_plate_wells` spw
+LEFT OUTER JOIN `biosero_uat`.`destination_plate_wells` dpw
+    ON spw.id = dpw.source_plate_well_id
 WHERE
-    spw.barcode = '<source plate barcode>'
-    AND spw.id NOT IN (
-      SELECT dpw.source_plate_well_id
-      FROM `biosero_uat`.`destination_plate_wells` dpw
-    )
+    spw.barcode = <source_barcode>
+    AND dpw.id IS NULL
 ORDER BY spw.id;
 ```
 

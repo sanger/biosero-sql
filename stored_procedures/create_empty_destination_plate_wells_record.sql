@@ -7,7 +7,6 @@ DELIMITER $$
 -- Creates an "empty" destination well row in the destination_plate_wells table, "empty" being
 -- unpicked, without source_plate_well_id or control_plate_well_id to link it to source or control plates
 CREATE PROCEDURE `biosero_uat`.`createEmptyDestinationPlateWellsRecord` (
-  IN input_automation_system_manufacturer VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_automation_system_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_system_run_id INT,
   IN input_barcode VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -28,8 +27,7 @@ BEGIN
     ( SELECT id FROM `biosero_uat`.`automation_system_runs`
       WHERE automation_system_id = (
         SELECT id FROM `biosero_uat`.`automation_systems`
-          WHERE automation_system_manufacturer = input_automation_system_manufacturer
-          AND automation_system_name = input_automation_system_name
+          WHERE automation_system_name = input_automation_system_name
         )
       AND system_run_id = input_system_run_id
     ),

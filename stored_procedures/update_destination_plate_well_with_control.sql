@@ -6,7 +6,6 @@ DELIMITER $$
 
 -- Updates a destination plate well row with a linked control well
 CREATE PROCEDURE `biosero_uat`.`updateDestinationPlateWellWithControl` (
-  IN input_automation_system_manufacturer VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_automation_system_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_system_run_id INT,
   IN input_destination_barcode VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
