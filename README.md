@@ -13,10 +13,11 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 - [View creation scripts](#view-creation-scripts)
 - [Example SQL](#example-sql)
   * [Configurations](#configurations)
-  * [Selects unpicked wells for a source barcode e.g. if the source is a partial](#selects-unpicked-wells-for-a-source-barcode-eg-if-the-source-is-a-partial)
+  * [Select unpicked wells for a source barcode e.g. if the source is a partial](#selects-unpicked-wells-for-a-source-barcode-eg-if-the-source-is-a-partial)
   * [Select empty well coordinates in a destination plate barcode](#select-empty-well-coordinates-in-a-destination-plate-barcode)
-  * [Insert new run row](#insert-new-run-row)
-  * [Walkthrough](#walkthrough)
+  * [Example usage queries for use case 1 from the URS](#example-usage-queries-for-use-case-1-from-the-URS)
+  * [Example use of views](#example-use-of-views)
+- [Python Scripts](#python-scripts)
 - [Miscellaneous](#miscellaneous)
   * [Updating the Table of Contents](#updating-the-table-of-contents)
 
@@ -130,6 +131,7 @@ ORDER BY dpw.id;
 ```
 
 ### Example usage queries for use case 1 from the URS
+
 This use case picks a positive and negative control from a Control plate, and then from 2 Source plates (with 1 and 93 pickable samples) to create a full destination plate.
 
 See file [use_case_1.sql](example_queries/use_case_1.sql)
@@ -164,6 +166,13 @@ WHERE
 ORDER BY system_run_id, destination_barcode, destination_coordinate
 ;
 ```
+## Python Scripts
+
+A python script has been included to reset the database(CARE!) here:
+[reset_database.py](/python_scripts/reset_database.py).
+
+A python script has been included to demonstrate use of the stored procedures during a typical run to create test data here:
+[generate_test_data.py](/python_scripts/generate_test_data.py).
 
 ## Miscellaneous
 
