@@ -8,6 +8,7 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 
 - [Schema diagram](#schema-diagram)
 - [List of tables and views](#list-of-tables-and-views)
+- [List of stored procedures](#list-of-stored-procedures)
 - [Database creation script](#database-creation-script)
 - [Table creation script](#table-creation-script)
 - [View creation scripts](#view-creation-scripts)
@@ -27,6 +28,7 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 ![Alt text](schema.png?raw=true "Biosero Central Database Schema")
 
 ## List of tables and views
+
 Tables
 - configurations - one row per configuration key value pair per system
 - automation_systems - one row per automation system
@@ -43,6 +45,21 @@ Views
 
 
 Table and view descriptions can be found here: [table_and_view_descriptions.md](table_and_view_descriptions.md).
+
+## List of stored procedures
+
+Stored procedures
+- createControlPlateWellsRecord here: [create_control_plate_wells_record.sql](/stored_procedures/create_control_plate_wells_record.sql)
+- createEmptyDestinationPlateWellsRecord here: [create_empty_destination_plate_wells_record.sql](/stored_procedures/create_empty_destination_plate_wells_record.sql)
+- createRunRecord here: [create_run_record.sql](/stored_procedures/create_run_record.sql)
+- createRunEventRecord here: [create_run_event_record.sql](/stored_procedures/create_run_event_record.sql)
+- createSourcePlateWellRecord here: [create_source_plate_well_record.sql](/stored_procedures/create_source_plate_well_record.sql)
+- getConfigurationForSystem here: [get_configuration_for_system.sql](/stored_procedures/get_configuration_for_system.sql)
+- getDetailsForDestinationPlate here: [get_details_for_destination_plate.sql](/stored_procedures/get_details_for_destination_plate.sql)
+- getPickableSamplesForSourcePlate here: [get_pickable_samples_for_source_plate.sql](/stored_procedures/get_pickable_samples_for_source_plate.sql)
+- updateDestinationPlateWellWithControl here: [update_destination_plate_well_with_control.sql](/stored_procedures/update_destination_plate_well_with_control.sql)
+- updateDestinationPlateWellWithSource here: [update_destination_plate_well_with_source.sql](/stored_procedures/update_destination_plate_well_with_source.sql)
+- updateRunState here: [update_run_state.sql](/stored_procedures/update_run_state.sql')
 
 ## Database creation script
 
