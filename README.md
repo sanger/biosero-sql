@@ -132,7 +132,7 @@ ORDER BY dpw.id;
 ### Example usage queries for use case 1 from the URS
 This use case picks a positive and negative control from a Control plate, and then from 2 Source plates (with 1 and 93 pickable samples) to create a full destination plate.
 
-See file [use_case_1.sql](use_case_1.sql)
+See file [use_case_1.sql](example_queries/use_case_1.sql)
 
 ### Example use of views
 
