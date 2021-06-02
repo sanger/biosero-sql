@@ -24,6 +24,7 @@ SQL_FILES = [
     'stored_procedures/create_run_event_record.sql',
     'stored_procedures/create_source_plate_well_record.sql',
     'stored_procedures/get_configuration_for_system.sql',
+    'stored_procedures/get_details_for_destination_plate.sql',
     'stored_procedures/get_pickable_samples_for_source_plate.sql',
     'stored_procedures/update_destination_plate_well_with_control.sql',
     'stored_procedures/update_destination_plate_well_with_source.sql',
