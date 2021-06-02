@@ -54,12 +54,15 @@ The required table creation scripts are found in [tables_script.sql](tables_scri
 ## View creation scripts
 
 The required view creation scripts are found in:
-- [view_run_level_view.sql](view_run_level_view.sql)
-- [view_sample_level_view.sql](view_sample_level_view.sql)
+- [view_run_level_view.sql](views/view_run_level_view.sql)
+- [view_sample_level_view.sql](views/view_sample_level_view.sql)
 
 ## Example SQL
 
 ### Configurations
+See example insert sql script here:
+- [configurations_insert_example.sql](example_queries/configurations_insert_example.sql)
+
 This example select query fetches the configuration key value pairs for a workcell called 'CPA':
 
 ```sql
