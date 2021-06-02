@@ -21,9 +21,9 @@ INSERT INTO `biosero_uat`.`automation_system_runs` (
   updated_at
 )
 VALUES (
-  (SELECT id FROM `biosero_uat`.`automation_systems` WHERE
-  automation_system_manufacturer = 'biosero'
-  AND automation_system_name = 'CPA'
+  (
+    SELECT id FROM `biosero_uat`.`automation_systems`
+    WHERE automation_system_name = 'CPA'
   ),
   '1',
   'cp v1',
@@ -45,8 +45,7 @@ VALUES (
   (SELECT id FROM `biosero_uat`.`automation_system_runs`
   WHERE automation_system_id = (
     SELECT id FROM `biosero_uat`.`automation_systems`
-        WHERE automation_system_manufacturer = 'biosero'
-        AND automation_system_name = 'CPA'
+        WHERE automation_system_name = 'CPA'
   )
     AND system_run_id = 1
   ),
@@ -65,8 +64,7 @@ SET @a_system_run_id := (
   FROM `biosero_uat`.`automation_system_runs`
   WHERE automation_system_id = (
   SELECT id FROM `biosero_uat`.`automation_systems`
-        WHERE automation_system_manufacturer = 'biosero'
-        AND automation_system_name = 'CPA'
+        WHERE automation_system_name = 'CPA'
   )
   AND system_run_id = 1
 );
@@ -1604,8 +1602,7 @@ SET
   updated_at = now()
 WHERE automation_system_id = (
   SELECT id FROM `biosero_uat`.`automation_systems`
-    WHERE automation_system_manufacturer = 'biosero'
-  AND automation_system_name = 'CPA'
+    WHERE automation_system_name = 'CPA'
   )
 AND system_run_id = 1
 ;
