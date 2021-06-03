@@ -455,86 +455,86 @@ sample_uuid_index = 1
 for dest_index in range(NUMBER_DESTINATION_PLATES_TO_MAKE):
     print("Processing for destination index %s" % dest_index)
     print("Fetching system configuration")
-#   [SP] Fetch config for CPA
+    # [SP] Fetch config for CPA
     configuration = get_configuration_for_system('CPA')
-#   [SP] Create run (run id = run_id_index) and run_configuration rows
+    # [SP] Create run (run id = run_id_index) and run_configuration rows
     system_run_id = get_last_run_id() + 1
     print("Create a new run record for system_run_id = %s" % system_run_id)
     create_run_record(SYSTEM_NAME, system_run_id, GBG_METHOD_NAME, USER_ID)
-#   [SP] Insert destination plate 96 empty rows
+    # [SP] Insert destination plate 96 empty rows
     dest_wells = WELL_COORDS.copy()
     dest_bc = generate_destination_plate_barcode(system_run_id)
     create_empty_destination_plate_wells(SYSTEM_NAME, system_run_id, dest_bc, dest_wells)
-#   Insert control plate rows using config
-#   [SP] Insert controls - from config control coordinates =
-#   [{coordinate: <positive coord>, control: 'positive'},{coordinate: <negative coord>, control: 'negative'}
+    # Insert control plate rows using config
+    # [SP] Insert controls - from config control coordinates =
+    # [{coordinate: <positive coord>, control: 'positive'},{coordinate: <negative coord>, control: 'negative'}
     pos_control_coord = configuration['control_coordinate_positive']
     neg_control_coord = configuration['control_coordinate_negative']
     controls = [{'coordinate': pos_control_coord, 'control': 'positive'},{'coordinate': neg_control_coord, 'control': 'negative'}]
     create_control_plate(SYSTEM_NAME, system_run_id, CONTROL_PLATE_BC, controls)
     print("Control plate coords: Pos in %s, neg in %s" % (pos_control_coord, neg_control_coord))
-#   Update destination plate rows for controls
+    # Update destination plate rows for controls
     pos_control_dest_coord = choose_random_coordinate(dest_wells)
     neg_control_dest_coord = choose_random_coordinate(dest_wells)
-#   For Positive
-#   [SP] Update destination with pos control - dest coord = random coord from (empty wells - excluded wells from config)
+    # For Positive
+    # [SP] Update destination with pos control - dest coord = random coord from (empty wells - excluded wells from config)
     update_destination_plate_well_for_control(SYSTEM_NAME, system_run_id, dest_bc, pos_control_dest_coord, CONTROL_PLATE_BC, pos_control_coord)
-#   For Negative
-#   [SP] Update destination with neg control - dest coord = random coord from (empty wells - excluded wells from config)
+    # For Negative
+    # [SP] Update destination with neg control - dest coord = random coord from (empty wells - excluded wells from config)
     update_destination_plate_well_for_control(SYSTEM_NAME, system_run_id, dest_bc, neg_control_dest_coord, CONTROL_PLATE_BC, neg_control_coord)
 
     src_plate_index = 0
     pickable_samples = []
     current_source_barcode = ''
     destination_completed = False
-#   loop until destination has no empty wells remaining
+    # loop until destination has no empty wells remaining
     while not destination_completed:
-#       get the next pickable source wells
+    #     get the next pickable source wells
         if len(pickable_samples) == 0:
             if partial_source_barcode == '':
-#               mock LIMS lookup - create list of pickable samples of random size 1-96
-#               e.g. has_plate_map: true, pickable_samples: [{source_coordinate: A1, sample_id: S000001, rna_id: R00001, lab_id: MK}]
+                # mock LIMS lookup - create list of pickable samples of random size 1-96
+                # e.g. has_plate_map: true, pickable_samples: [{source_coordinate: A1, sample_id: S000001, rna_id: R00001, lab_id: MK}]
                 src_plate_index += 1
                 current_source_barcode = generate_source_plate_barcode(system_run_id, src_plate_index)
                 pickable_samples = create_random_pickable_samples(system_run_id, sample_uuid_index)
-#               [SP] Insert new source rows (pickable_samples)
+                # [SP] Insert new source rows (pickable_samples)
                 create_source_plate(current_source_barcode, pickable_samples)
             else:
-#               a partial source has been left over from a previous run
+                # a partial source has been left over from a previous run
                 print("Using partial source %s" % partial_source_barcode)
-#               [SP] Select source info for partial_source_barcode (returns pickable_samples)
+                # [SP] Select source info for partial_source_barcode (returns pickable_samples)
                 current_source_barcode = partial_source_barcode
                 print("current_source_barcode = %s" % current_source_barcode)
                 pickable_samples = get_pickable_samples_for_source_plate(current_source_barcode)
-#                 print(pickable_samples)
+                #   print(pickable_samples)
                 partial_source_barcode = ''
 
         for pickable_sample in pickable_samples:
             if len(dest_wells) > 0:
-#                 print("Length destination wells = %s" % len(dest_wells))
-#               [SP] Update destination plate row at coord empty wells[0] to source[src_index]
+                #   print("Length destination wells = %s" % len(dest_wells))
+                # [SP] Update destination plate row at coord empty wells[0] to source[src_index]
                 update_destination_plate_well_for_source(SYSTEM_NAME, system_run_id, dest_bc, dest_wells.pop(0), current_source_barcode, pickable_sample['source_coordinate'])
             else:
-#               destination is full
+                # destination is full
                 destination_completed = True
-#               check, source plate may be partial
+                # check, source plate may be partial
                 if pickable_samples.index(pickable_sample) < (len(pickable_samples) - 1):
-#                   source is a partial, store barcode for next run cycle
+                    # source is a partial, store barcode for next run cycle
                     partial_source_barcode = current_source_barcode
                     num_rem_samples = (len(pickable_samples) - pickable_samples.index(pickable_sample) + 1)
                     print("Partial source %s recorded with %s pickable samples remaining" % (partial_source_barcode, num_rem_samples))
                 break
-#       reset pickable samples for next source
+        # reset pickable samples for next source
         pickable_samples = []
 
-#   Run complete, destination full
+    # Run complete, destination full
 
-#   Add an example event to test the run event stored procedure
+    # Add an example event to test the run event stored procedure
     event_type = "info"
     event = '{"code":"200","message":"run completed","other":"some information"}'
     create_run_event_record(SYSTEM_NAME, system_run_id, event_type, event)
 
-#   [SP] Update run log to completed at the end of the run
+    # [SP] Update run log to completed at the end of the run
     new_state = "completed"
     update_run_record(SYSTEM_NAME, system_run_id, new_state)
 
