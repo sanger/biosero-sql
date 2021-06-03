@@ -12,6 +12,7 @@ import os
 import mysql.connector # use command 'pip install mysql-connector-python'
 import json
 import random
+import uuid
 
 from config.defaults import *
 
@@ -70,14 +71,19 @@ def get_configuration_for_system(system_name) -> dict:
     else:
         print("Fetched configuration for system name %s" % system_name)
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # Insert a run record
 def create_run_record(system_name, system_run_id, gbg_method_name, user_id):
     try:
         # open DB connection
         db_conn = create_database_connection()
+
+        # disable auto-commit
+        db_conn.autocommit = False
 
         # Get a cursor
         cursor = db_conn.cursor()
@@ -90,11 +96,17 @@ def create_run_record(system_name, system_run_id, gbg_method_name, user_id):
         db_conn.commit()
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Created run record for id = %s" % system_run_id)
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # Insert empty wells for the destination plate
 def create_empty_destination_plate_wells(system_name, system_run_id, dest_bc, well_coords):
@@ -102,10 +114,14 @@ def create_empty_destination_plate_wells(system_name, system_run_id, dest_bc, we
         # open DB connection
         db_conn = create_database_connection()
 
+        # disable auto-commit
+        db_conn.autocommit = False
+
         # Get a cursor
         cursor = db_conn.cursor()
 
         # Call stored procedure with parameters for each well
+
         for well_coord in well_coords:
             args = [system_name, system_run_id, dest_bc, well_coord]
             cursor.callproc('createEmptyDestinationPlateWellsRecord', args)
@@ -114,17 +130,26 @@ def create_empty_destination_plate_wells(system_name, system_run_id, dest_bc, we
         db_conn.commit()
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Created destination plate %s empty wells" % dest_bc)
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # Insert rows for the control plate
 def create_control_plate(system_name, system_run_id, control_plate_barcode, controls):
     try:
         # open DB connection
         db_conn = create_database_connection()
+
+        # disable auto-commit
+        db_conn.autocommit = False
 
         # Get a cursor
         cursor = db_conn.cursor()
@@ -138,17 +163,26 @@ def create_control_plate(system_name, system_run_id, control_plate_barcode, cont
         db_conn.commit()
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Created control plate %s for run id %s" % (control_plate_barcode, system_run_id))
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # Update the destination plate well after picking a control
 def update_destination_plate_well_for_control(system_name, system_run_id, destination_barcode, destination_coordinate, control_barcode, control_coordinate):
     try:
         # open DB connection
         db_conn = create_database_connection()
+
+        # disable auto-commit
+        db_conn.autocommit = False
 
         # Get a cursor
         cursor = db_conn.cursor()
@@ -161,11 +195,17 @@ def update_destination_plate_well_for_control(system_name, system_run_id, destin
         db_conn.commit()
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Updated destination well %s with picked control from %s coord %s" % (destination_coordinate, control_barcode, control_coordinate))
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # This method is mocking the Sanger barcode creation process for destination plates
 def generate_destination_plate_barcode(system_run_id) -> str:
@@ -196,7 +236,7 @@ def create_random_pickable_samples(system_run_id, sample_uuid_index):
         pickable_samples.append(
             {
                 'source_coordinate': src_coord,
-                'sample_id': "UUID-S-%s-%s" % (str(system_run_id).zfill(5), str(sample_uuid_index).zfill(8)),
+                'sample_id': str(uuid.uuid4()),
                 'rna_id': "RNA-S-%s-%s" % (str(system_run_id).zfill(5), str(sample_uuid_index).zfill(8)),
                 'lab_id': 'MK'
             }
@@ -211,6 +251,9 @@ def create_source_plate(source_barcode, pickable_samples):
         # open DB connection
         db_conn = create_database_connection()
 
+        # disable auto-commit
+        db_conn.autocommit = False
+
         # Get a cursor
         cursor = db_conn.cursor()
 
@@ -223,11 +266,17 @@ def create_source_plate(source_barcode, pickable_samples):
         db_conn.commit()
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Created source plate %s with %s pickable samples" % (source_barcode, len(pickable_samples)))
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # Fetch the remaining pickable samples for a source plate
 def get_pickable_samples_for_source_plate(barcode):
@@ -241,7 +290,6 @@ def get_pickable_samples_for_source_plate(barcode):
 
         # Call stored procedure with source barcode
         args = [barcode]
-        print("barcode for proc = %s" % barcode)
         cursor.callproc('getPickableSamplesForSourcePlate', args)
 
         # Process the result into a dictionary
@@ -261,16 +309,23 @@ def get_pickable_samples_for_source_plate(barcode):
         print(e)
     else:
         print("Fetched pickable samples for source plate %s" % barcode)
+        pickable_samples_in_db = pickable_samples
+
     finally:
-        cursor.close()
-        db_conn.close()
-        return pickable_samples
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
+        return pickable_samples_in_db
 
 # Update the destination plate well for a picked source plate well
 def update_destination_plate_well_for_source(system_name, system_run_id, destination_barcode, destination_coordinate, source_barcode, source_coordinate):
     try:
         # open DB connection
         db_conn = create_database_connection()
+
+        # disable auto-commit
+        db_conn.autocommit = False
 
         # Get a cursor
         cursor = db_conn.cursor()
@@ -283,17 +338,26 @@ def update_destination_plate_well_for_source(system_name, system_run_id, destina
         db_conn.commit()
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Updated destination well %s with picked source %s coordinate %s" % (destination_coordinate, source_barcode, source_coordinate))
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # Update the run record at the end of the run
 def update_run_record(system_name, system_run_id, new_state):
     try:
         # open DB connection
         db_conn = create_database_connection()
+
+        # disable auto-commit
+        db_conn.autocommit = False
 
         # Get a cursor
         cursor = db_conn.cursor()
@@ -306,11 +370,17 @@ def update_run_record(system_name, system_run_id, new_state):
         db_conn.commit()
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Updated run record id %s with state %s" % (system_run_id, new_state))
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # Fetch the last run id used
 def get_last_run_id() -> int:
@@ -331,11 +401,17 @@ def get_last_run_id() -> int:
 
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Fetched last run id %s" % last_run_id)
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
         return last_run_id
 
 # Insert a run event record
@@ -343,6 +419,9 @@ def create_run_event_record(system_name, system_run_id, event_type, event):
     try:
         # open DB connection
         db_conn = create_database_connection()
+
+        # disable auto-commit
+        db_conn.autocommit = False
 
         # Get a cursor
         cursor = db_conn.cursor()
@@ -355,11 +434,17 @@ def create_run_event_record(system_name, system_run_id, event_type, event):
         db_conn.commit()
     except Exception as e:
         print(e)
+
+        # reverting changes because of exception
+        if db_conn.is_connected():
+            conn.rollback()
     else:
         print("Created run event type %s with event %s" % (event_type, event))
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn.is_connected():
+            if cursor is not None:
+                cursor.close()
+            db_conn.close()
 
 # =============
 # Script starts here
