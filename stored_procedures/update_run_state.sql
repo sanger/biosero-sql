@@ -5,17 +5,20 @@ DROP PROCEDURE IF EXISTS `updateRunState`;
 DELIMITER $$
 
 -- Updates a destination plate well row with a linked control well
--- Q. Do we want to pass in end_time as a parameter?
 CREATE PROCEDURE `updateRunState` (
   IN input_automation_system_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_system_run_id INT,
-  IN input_state VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+  IN input_state ENUM('started','completed','aborted')
 )
 BEGIN
 
   UPDATE `automation_system_runs`
   SET
-    end_time = now(),
+    end_time = CASE input_state
+                 WHEN 'completed' THEN now()
+                 WHEN 'aborted' THEN now()
+                 ELSE end_time
+               END,
     state = input_state,
     updated_at = now()
   WHERE automation_system_id = (
