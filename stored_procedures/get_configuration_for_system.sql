@@ -10,9 +10,9 @@ CREATE PROCEDURE `getConfigurationForSystem` (
 )
 BEGIN
   SELECT conf.config_key, conf.config_value
-    FROM `configurations` conf
+  FROM `configurations` conf
   JOIN `automation_systems` asys
-  ON conf.automation_system_id = asys.id
+    ON conf.automation_system_id = asys.id
   WHERE asys.automation_system_name = input_automation_system_name
     ORDER BY conf.id ASC;
 

@@ -16,7 +16,7 @@ import uuid
 
 from config.defaults import *
 
-NUMBER_DESTINATION_PLATES_TO_MAKE = 1
+NUMBER_DESTINATION_PLATES_TO_MAKE = 5
 GBG_METHOD_NAME = 'example method name v1.2'
 USER_ID = 'ab12'
 SYSTEM_NAME = 'CPA'
@@ -46,6 +46,7 @@ def create_database_connection():
 
 # Fetch the configuration details for a specific system
 def get_configuration_for_system(system_name) -> dict:
+    dict_result = {}
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -58,24 +59,24 @@ def get_configuration_for_system(system_name) -> dict:
         cursor.callproc('getConfigurationForSystem', args)
 
         # Process the result into a dictionary
-        dict_result = {}
+        dict_tmp = {}
         for result in cursor.stored_results(): # only one result
             configs = result.fetchall() # array of key value pairs
             for config in configs:
-                dict_result.update({config['config_key']: config['config_value']})
-
-        return dict_result
+                dict_tmp.update({config['config_key']: config['config_value']})
 
     except Exception as e:
         print(e)
     else:
         print("Fetched configuration for system name %s" % system_name)
+        dict_result = dict_tmp
     finally:
         if db_conn is not None:
             if db_conn.is_connected():
                 if cursor is not None:
                     cursor.close()
                 db_conn.close()
+        return dict_result
 
 # Insert a run record
 def create_run_record(system_name, system_run_id, gbg_method_name, user_id):
@@ -100,7 +101,7 @@ def create_run_record(system_name, system_run_id, gbg_method_name, user_id):
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
         print("Created run record for id = %s" % system_run_id)
     finally:
@@ -135,7 +136,7 @@ def create_empty_destination_plate_wells(system_name, system_run_id, dest_bc, we
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
         print("Created destination plate %s empty wells" % dest_bc)
     finally:
@@ -169,7 +170,7 @@ def create_control_plate(system_name, system_run_id, control_plate_barcode, cont
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
         print("Created control plate %s for run id %s" % (control_plate_barcode, system_run_id))
     finally:
@@ -202,9 +203,9 @@ def update_destination_plate_well_for_control(system_name, system_run_id, destin
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
-        print("Updated destination well %s with picked control from %s coord %s" % (destination_coordinate, control_barcode, control_coordinate))
+        print("Updated destination coord %s with picked control %s coord %s" % (destination_coordinate, control_barcode, control_coordinate))
     finally:
         if db_conn is not None:
             if db_conn.is_connected():
@@ -274,7 +275,7 @@ def create_source_plate(source_barcode, pickable_samples):
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
         print("Created source plate %s with %s pickable samples" % (source_barcode, len(pickable_samples)))
     finally:
@@ -348,9 +349,9 @@ def update_destination_plate_well_for_source(system_name, system_run_id, destina
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
-        print("Updated destination well %s with picked source %s coordinate %s" % (destination_coordinate, source_barcode, source_coordinate))
+        print("Updated destination coord %s with picked source %s coord %s" % (destination_coordinate, source_barcode, source_coordinate))
     finally:
         if db_conn is not None:
             if db_conn.is_connected():
@@ -381,7 +382,7 @@ def update_run_record(system_name, system_run_id, new_state):
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
         print("Updated run record id %s with state %s" % (system_run_id, new_state))
     finally:
@@ -393,7 +394,7 @@ def update_run_record(system_name, system_run_id, new_state):
 
 # Fetch the last run id used
 def get_last_run_id() -> int:
-    last_run_id = 0
+    last_run_id = -1
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -401,19 +402,20 @@ def get_last_run_id() -> int:
         # Get a cursor
         cursor = db_conn.cursor()
 
-        sql = "SELECT MAX(system_run_id) FROM automation_system_runs;"
-        cursor.execute(sql)
-
-        result = cursor.fetchone()
-        if result[0] is not None:
-            last_run_id = result[0]
+        # Call stored procedure, output will go into args[0]
+        args = [0]
+        result_args = cursor.callproc('getLastSystemRunId', args)
+        last_run_id = result_args[0]
+        # on a fresh database this returns None
+        if last_run_id is None:
+            last_run_id = 0
 
     except Exception as e:
         print(e)
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
         print("Fetched last run id %s" % last_run_id)
     finally:
@@ -447,7 +449,7 @@ def create_run_event_record(system_name, system_run_id, event_type, event):
 
         # reverting changes because of exception
         if db_conn.is_connected():
-            conn.rollback()
+            db_conn.rollback()
     else:
         print("Created run event type %s with event %s" % (event_type, event))
     finally:
@@ -464,12 +466,19 @@ def create_run_event_record(system_name, system_run_id, event_type, event):
 partial_source_barcode = ''
 sample_uuid_index = 1
 for dest_index in range(NUMBER_DESTINATION_PLATES_TO_MAKE):
-    print("Processing for destination index %s" % dest_index)
+    print("Destination index %s" % dest_index)
     print("Fetching system configuration")
     # [SP] Fetch config for CPA
     configuration = get_configuration_for_system('CPA')
+    if configuration == {}:
+        print("Aborting, no configuration selected")
+        break
     # [SP] Create run (run id = run_id_index) and run_configuration rows
-    system_run_id = get_last_run_id() + 1
+    last_run_id = get_last_run_id()
+    if last_run_id == -1:
+        print("Aborting, could not fetch last run id")
+        break
+    system_run_id = last_run_id + 1
     print("Create a new run record for system_run_id = %s" % system_run_id)
     create_run_record(SYSTEM_NAME, system_run_id, GBG_METHOD_NAME, USER_ID)
     # [SP] Insert destination plate 96 empty rows
