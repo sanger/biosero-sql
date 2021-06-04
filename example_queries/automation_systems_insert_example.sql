@@ -1,5 +1,5 @@
 -- Insert automation system rows for both workcells
-INSERT INTO `biosero_uat`.`automation_systems` (
+INSERT INTO `automation_systems` (
   automation_system_name,
   automation_system_manufacturer,
   liquid_handler_serial_number,

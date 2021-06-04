@@ -1,6 +1,6 @@
-# Biosero SQL
+# CherryTrack SQL
 
-Scripts to create/update the schema required for the Sanger/Biosero integration database.
+Scripts to create/update the schema required for the cherrytrack database.
 
 ## Table of Contents
 
@@ -9,7 +9,7 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 - [Schema diagram](#schema-diagram)
 - [List of tables and views](#list-of-tables-and-views)
 - [List of stored procedures](#list-of-stored-procedures)
-- [Database creation script](#database-creation-script)
+- [Database creation](#database-creation)
 - [Table creation script](#table-creation-script)
 - [View creation scripts](#view-creation-scripts)
 - [Example SQL](#example-sql)
@@ -25,7 +25,7 @@ Scripts to create/update the schema required for the Sanger/Biosero integration 
 <!-- tocstop -->
 
 ## Schema diagram
-![Alt text](schema.png?raw=true "Biosero Central Database Schema")
+![Alt text](schema.png?raw=true "CherryTrack Database Schema")
 
 ## List of tables and views
 
@@ -61,9 +61,11 @@ Stored procedures
 - updateDestinationPlateWellWithSource here: [update_destination_plate_well_with_source.sql](/stored_procedures/update_destination_plate_well_with_source.sql)
 - updateRunState here: [update_run_state.sql](/stored_procedures/update_run_state.sql')
 
-## Database creation script
+## Database creation
 
-The required database creation scripts are found in [database_script.sql](database_script.sql).
+The easiest way to create the database (and associated views and stored procedures) is via the python scripts here: [Python Scripts](#python-scripts)
+
+Alternatively you can use the database creation scripts are found in [database_script.sql](database_script.sql). NB. Change the 'database name' placeholder.
 
 ## Table creation script
 
@@ -85,8 +87,8 @@ This example select query fetches the configuration key value pairs for a workce
 
 ```sql
 SELECT asys.automation_system_name, conf.config_key, conf.config_value, conf.description, conf.created_at
-FROM `biosero_uat`.`configurations` conf
-JOIN `biosero_uat`.`automation_systems` asys
+FROM `configurations` conf
+JOIN `automation_systems` asys
   ON conf.automation_system_id = asys.id
 WHERE asys.automation_system_name = 'CPA';
 ```
@@ -126,8 +128,8 @@ SELECT
     spw.rna_id,
     spw.lab_id
 FROM
-    `biosero_uat`.`source_plate_wells` spw
-LEFT OUTER JOIN `biosero_uat`.`destination_plate_wells` dpw
+    `source_plate_wells` spw
+LEFT OUTER JOIN `destination_plate_wells` dpw
     ON spw.id = dpw.source_plate_well_id
 WHERE
     spw.barcode = <source_barcode>
@@ -139,7 +141,7 @@ ORDER BY spw.id;
 
 ```sql
 SELECT dpw.coordinate
-FROM `biosero_uat`.`destination_plate_wells` dpw
+FROM `destination_plate_wells` dpw
 WHERE
     barcode = '<destination plate barcode>'
     AND source_plate_well_id IS NULL
@@ -161,7 +163,7 @@ See file [use_case_1.sql](example_queries/use_case_1.sql)
 SELECT
     *
 FROM
-    `biosero_uat`.`run_level_view`
+    `run_level_view`
 WHERE
     automation_system_manufacturer = 'biosero'
     AND automation_system_name = 'CPA'
@@ -175,7 +177,7 @@ WHERE
 SELECT
     *
 FROM
-    `biosero_uat`.`sample_level_view`
+    `sample_level_view`
 WHERE
     automation_system_manufacturer = 'biosero'
     AND automation_system_name = 'CPA'

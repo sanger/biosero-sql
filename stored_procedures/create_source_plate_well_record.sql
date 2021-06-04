@@ -1,10 +1,10 @@
 -- drop the stored procedure
-DROP PROCEDURE IF EXISTS `biosero_uat`.`createSourcePlateWellRecord`;
+DROP PROCEDURE IF EXISTS `createSourcePlateWellRecord`;
 
 -- create the stored procedure
 DELIMITER $$
 
-CREATE PROCEDURE `biosero_uat`.`createSourcePlateWellRecord` (
+CREATE PROCEDURE `createSourcePlateWellRecord` (
   IN input_barcode VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_coordinate VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   IN input_sample_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -12,7 +12,7 @@ CREATE PROCEDURE `biosero_uat`.`createSourcePlateWellRecord` (
   IN input_lab_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
-  INSERT INTO `biosero_uat`.`source_plate_wells` (
+  INSERT INTO `source_plate_wells` (
     `barcode`,
     `coordinate`,
     `sample_id`,

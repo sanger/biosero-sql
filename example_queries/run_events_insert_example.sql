@@ -1,5 +1,5 @@
 -- An example of a run event insert
-INSERT INTO `biosero_uat`.`run_events` (
+INSERT INTO `run_events` (
   automation_system_run_id,
     type,
     event,
@@ -7,9 +7,9 @@ INSERT INTO `biosero_uat`.`run_events` (
     updated_at
 )
 VALUES (
-  (SELECT id FROM `biosero_uat`.`automation_system_runs`
+  (SELECT id FROM `automation_system_runs`
     WHERE automation_system_id = (
-      SELECT id FROM `biosero_uat`.`automation_systems`
+      SELECT id FROM `automation_systems`
         WHERE automation_system_name = 'CPA'
     )
     AND system_run_id = 1

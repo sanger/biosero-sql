@@ -4,4 +4,4 @@ DB_HOST = 'localhost'
 DB_PORT = 3306
 DB_USER = 'root'
 DB_PWD = ''
-DB_NAME = 'biosero_uat'
+DB_NAME = 'cherrytrack_uat'

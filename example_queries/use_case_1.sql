@@ -4,13 +4,13 @@
 
 -- select configuration for the workcell
 SELECT conf.id, asys.automation_system_name, conf.config_key, conf.config_value, conf.description, conf.created_at
-FROM `biosero_uat`.`configurations` conf
-JOIN `biosero_uat`.`automation_systems` asys
+FROM `configurations` conf
+JOIN `automation_systems` asys
   ON conf.automation_system_id = asys.id
 WHERE asys.automation_system_name = 'CPA' ORDER BY conf.id ASC;
 
 -- insert a new run row at the start of the run, with state 'started'
-INSERT INTO `biosero_uat`.`automation_system_runs` (
+INSERT INTO `automation_system_runs` (
   automation_system_id,
   system_run_id,
   method,
@@ -22,7 +22,7 @@ INSERT INTO `biosero_uat`.`automation_system_runs` (
 )
 VALUES (
   (
-    SELECT id FROM `biosero_uat`.`automation_systems`
+    SELECT id FROM `automation_systems`
     WHERE automation_system_name = 'CPA'
   ),
   '1',
@@ -35,16 +35,16 @@ VALUES (
 );
 
 -- insert a row to record the configurations used for this run
-INSERT INTO `biosero_uat`.`run_configurations` (
+INSERT INTO `run_configurations` (
   automation_system_run_id,
   configuration_used,
   created_at,
   updated_at
 )
 VALUES (
-  (SELECT id FROM `biosero_uat`.`automation_system_runs`
+  (SELECT id FROM `automation_system_runs`
   WHERE automation_system_id = (
-    SELECT id FROM `biosero_uat`.`automation_systems`
+    SELECT id FROM `automation_systems`
         WHERE automation_system_name = 'CPA'
   )
     AND system_run_id = 1
@@ -55,22 +55,22 @@ VALUES (
 );
 
 -- check the destination plate does not already exist
-SELECT id FROM `biosero_uat`.`destination_plate_wells`
+SELECT id FROM `destination_plate_wells`
 WHERE barcode = 'HT_000001';
 
 -- select the id of the run
 SET @a_system_run_id := (
   SELECT id
-  FROM `biosero_uat`.`automation_system_runs`
+  FROM `automation_system_runs`
   WHERE automation_system_id = (
-  SELECT id FROM `biosero_uat`.`automation_systems`
+  SELECT id FROM `automation_systems`
         WHERE automation_system_name = 'CPA'
   )
   AND system_run_id = 1
 );
 
 -- create the empty destination plate with 96 wells
-INSERT INTO `biosero_uat`.`destination_plate_wells` (
+INSERT INTO `destination_plate_wells` (
   automation_system_run_id,
   barcode,
   coordinate,
@@ -178,7 +178,7 @@ VALUES
 
 -- insert the positive control well into control_plate_wells table
 -- using configuration key value pair to determine positive control location
-INSERT INTO `biosero_uat`.`control_plate_wells` (
+INSERT INTO `control_plate_wells` (
   automation_system_run_id,
   barcode,
   coordinate,
@@ -191,10 +191,10 @@ VALUES
 ;
 
 -- for positive control, insert well into random destination location
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   control_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`control_plate_wells` cpw
+    SELECT id FROM `control_plate_wells` cpw
     WHERE cpw.barcode = 'Control01'
     AND cpw.coordinate = 'A1'
   ),
@@ -206,7 +206,7 @@ WHERE
 
 -- insert negative control well into control_plate_wells table
 -- using configuration key value pair to determine negative control location
-INSERT INTO `biosero_uat`.`control_plate_wells` (
+INSERT INTO `control_plate_wells` (
   automation_system_run_id,
   barcode,
   coordinate,
@@ -219,10 +219,10 @@ VALUES
 ;
 
 -- for negative control, insert well into random destination location
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   control_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`control_plate_wells` spw
+    SELECT id FROM `control_plate_wells` spw
     WHERE spw.barcode = 'Control01'
     AND spw.coordinate = 'H12'
   ),
@@ -233,11 +233,11 @@ WHERE
 ;
 
 -- check source does not already exist (it should not in this use case)
-SELECT id FROM `biosero_uat`.`source_plate_wells`
+SELECT id FROM `source_plate_wells`
 WHERE barcode = 'Source01';
 
 -- insert the new source plate after LIMS lookup, with 1 pickable well in D1
-INSERT INTO `biosero_uat`.`source_plate_wells` (
+INSERT INTO `source_plate_wells` (
   barcode,
   coordinate,
   sample_id,
@@ -251,10 +251,10 @@ VALUES
 ;
 
 -- pick the well, then update destination A1 with pick from source 1
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source01'
     AND spw.coordinate = 'D1'
   ),
@@ -266,11 +266,11 @@ WHERE
 
 -- check the second source plate does not already exist
 SELECT id
-FROM `biosero_uat`.`source_plate_wells`
+FROM `source_plate_wells`
 WHERE barcode = 'Source02';
 
 -- insert the new source plate after lookup, with 93 pickable wells
-INSERT INTO `biosero_uat`.`source_plate_wells` (
+INSERT INTO `source_plate_wells` (
     barcode,
     coordinate,
     sample_id,
@@ -384,10 +384,10 @@ VALUES
 
 -- update the destination plate with the picks from source 2 as they occur
 -- (93 similar queries)
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A1'
   ),
@@ -397,10 +397,10 @@ WHERE
   AND coordinate = 'A2'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A2'
   ),
@@ -410,10 +410,10 @@ WHERE
   AND coordinate = 'A3'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A3'
   ),
@@ -423,10 +423,10 @@ WHERE
   AND coordinate = 'A4'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A4'
   ),
@@ -436,10 +436,10 @@ WHERE
   AND coordinate = 'A5'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A5'
   ),
@@ -449,10 +449,10 @@ WHERE
   AND coordinate = 'A6'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A6'
   ),
@@ -462,10 +462,10 @@ WHERE
   AND coordinate = 'A7'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A7'
   ),
@@ -475,10 +475,10 @@ WHERE
   AND coordinate = 'A8'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A8'
   ),
@@ -488,10 +488,10 @@ WHERE
   AND coordinate = 'A9'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A9'
   ),
@@ -501,10 +501,10 @@ WHERE
   AND coordinate = 'A10'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A10'
   ),
@@ -514,10 +514,10 @@ WHERE
   AND coordinate = 'A11'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A11'
   ),
@@ -527,10 +527,10 @@ WHERE
   AND coordinate = 'A12'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'A12'
   ),
@@ -540,10 +540,10 @@ WHERE
   AND coordinate = 'B1'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B2'
   ),
@@ -553,10 +553,10 @@ WHERE
   AND coordinate = 'B2'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B3'
   ),
@@ -566,10 +566,10 @@ WHERE
   AND coordinate = 'B4'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B4'
   ),
@@ -579,10 +579,10 @@ WHERE
   AND coordinate = 'B5'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B5'
   ),
@@ -592,10 +592,10 @@ WHERE
   AND coordinate = 'B6'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B6'
   ),
@@ -605,10 +605,10 @@ WHERE
   AND coordinate = 'B7'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B7'
   ),
@@ -618,10 +618,10 @@ WHERE
   AND coordinate = 'B8'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B8'
   ),
@@ -631,10 +631,10 @@ WHERE
   AND coordinate = 'B9'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B9'
   ),
@@ -644,10 +644,10 @@ WHERE
   AND coordinate = 'B10'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B10'
   ),
@@ -657,10 +657,10 @@ WHERE
   AND coordinate = 'B11'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B11'
   ),
@@ -670,10 +670,10 @@ WHERE
   AND coordinate = 'B12'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'B12'
   ),
@@ -683,10 +683,10 @@ WHERE
   AND coordinate = 'C1'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C2'
   ),
@@ -696,10 +696,10 @@ WHERE
   AND coordinate = 'C2'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C3'
   ),
@@ -709,10 +709,10 @@ WHERE
   AND coordinate = 'C3'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C4'
   ),
@@ -722,10 +722,10 @@ WHERE
   AND coordinate = 'C4'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C5'
   ),
@@ -735,10 +735,10 @@ WHERE
   AND coordinate = 'C5'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C6'
   ),
@@ -748,10 +748,10 @@ WHERE
   AND coordinate = 'C6'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C7'
   ),
@@ -761,10 +761,10 @@ WHERE
   AND coordinate = 'C7'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C8'
   ),
@@ -774,10 +774,10 @@ WHERE
   AND coordinate = 'C8'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C9'
   ),
@@ -787,10 +787,10 @@ WHERE
   AND coordinate = 'C9'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C10'
   ),
@@ -800,10 +800,10 @@ WHERE
   AND coordinate = 'C10'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C11'
   ),
@@ -813,10 +813,10 @@ WHERE
   AND coordinate = 'C11'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'C12'
   ),
@@ -826,10 +826,10 @@ WHERE
   AND coordinate = 'C12'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D2'
   ),
@@ -839,10 +839,10 @@ WHERE
   AND coordinate = 'D1'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D3'
   ),
@@ -852,10 +852,10 @@ WHERE
   AND coordinate = 'D2'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D4'
   ),
@@ -865,10 +865,10 @@ WHERE
   AND coordinate = 'D3'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D5'
   ),
@@ -878,10 +878,10 @@ WHERE
   AND coordinate = 'D4'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D6'
   ),
@@ -891,10 +891,10 @@ WHERE
   AND coordinate = 'D5'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D7'
   ),
@@ -904,10 +904,10 @@ WHERE
   AND coordinate = 'D6'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D8'
   ),
@@ -917,10 +917,10 @@ WHERE
   AND coordinate = 'D7'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D9'
   ),
@@ -930,10 +930,10 @@ WHERE
   AND coordinate = 'D8'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D10'
   ),
@@ -943,10 +943,10 @@ WHERE
   AND coordinate = 'D9'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D11'
   ),
@@ -956,10 +956,10 @@ WHERE
   AND coordinate = 'D10'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'D12'
   ),
@@ -969,10 +969,10 @@ WHERE
   AND coordinate = 'D11'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E1'
   ),
@@ -982,10 +982,10 @@ WHERE
   AND coordinate = 'D12'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E2'
   ),
@@ -995,10 +995,10 @@ WHERE
   AND coordinate = 'E1'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E3'
   ),
@@ -1008,10 +1008,10 @@ WHERE
   AND coordinate = 'E2'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E4'
   ),
@@ -1021,10 +1021,10 @@ WHERE
   AND coordinate = 'E3'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E5'
   ),
@@ -1034,10 +1034,10 @@ WHERE
   AND coordinate = 'E4'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E6'
   ),
@@ -1047,10 +1047,10 @@ WHERE
   AND coordinate = 'E5'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E7'
   ),
@@ -1060,10 +1060,10 @@ WHERE
   AND coordinate = 'E6'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E8'
   ),
@@ -1073,10 +1073,10 @@ WHERE
   AND coordinate = 'E7'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E9'
   ),
@@ -1086,10 +1086,10 @@ WHERE
   AND coordinate = 'E8'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E10'
   ),
@@ -1099,10 +1099,10 @@ WHERE
   AND coordinate = 'E9'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E11'
   ),
@@ -1112,10 +1112,10 @@ WHERE
   AND coordinate = 'E10'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'E12'
   ),
@@ -1125,10 +1125,10 @@ WHERE
   AND coordinate = 'E11'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F1'
   ),
@@ -1138,10 +1138,10 @@ WHERE
   AND coordinate = 'E12'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F2'
   ),
@@ -1151,10 +1151,10 @@ WHERE
   AND coordinate = 'F1'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F3'
   ),
@@ -1164,10 +1164,10 @@ WHERE
   AND coordinate = 'F2'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F4'
   ),
@@ -1177,10 +1177,10 @@ WHERE
   AND coordinate = 'F3'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F5'
   ),
@@ -1190,10 +1190,10 @@ WHERE
   AND coordinate = 'F4'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F6'
   ),
@@ -1203,10 +1203,10 @@ WHERE
   AND coordinate = 'F5'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F7'
   ),
@@ -1216,10 +1216,10 @@ WHERE
   AND coordinate = 'F6'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F8'
   ),
@@ -1229,10 +1229,10 @@ WHERE
   AND coordinate = 'F7'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F9'
   ),
@@ -1242,10 +1242,10 @@ WHERE
   AND coordinate = 'F8'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F10'
   ),
@@ -1255,10 +1255,10 @@ WHERE
   AND coordinate = 'F9'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F11'
   ),
@@ -1268,10 +1268,10 @@ WHERE
   AND coordinate = 'F10'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'F12'
   ),
@@ -1281,10 +1281,10 @@ WHERE
   AND coordinate = 'F11'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G1'
   ),
@@ -1294,10 +1294,10 @@ WHERE
   AND coordinate = 'F12'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G2'
   ),
@@ -1307,10 +1307,10 @@ WHERE
   AND coordinate = 'G1'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G3'
   ),
@@ -1320,10 +1320,10 @@ WHERE
   AND coordinate = 'G2'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G4'
   ),
@@ -1333,10 +1333,10 @@ WHERE
   AND coordinate = 'G3'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G5'
   ),
@@ -1346,10 +1346,10 @@ WHERE
   AND coordinate = 'G4'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G6'
   ),
@@ -1359,10 +1359,10 @@ WHERE
   AND coordinate = 'G5'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G7'
   ),
@@ -1372,10 +1372,10 @@ WHERE
   AND coordinate = 'G6'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G8'
   ),
@@ -1385,10 +1385,10 @@ WHERE
   AND coordinate = 'G7'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G9'
   ),
@@ -1398,10 +1398,10 @@ WHERE
   AND coordinate = 'G8'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G10'
   ),
@@ -1411,10 +1411,10 @@ WHERE
   AND coordinate = 'G9'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G11'
   ),
@@ -1424,10 +1424,10 @@ WHERE
   AND coordinate = 'G10'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'G12'
   ),
@@ -1437,10 +1437,10 @@ WHERE
   AND coordinate = 'G11'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H1'
   ),
@@ -1450,10 +1450,10 @@ WHERE
   AND coordinate = 'G12'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H2'
   ),
@@ -1463,10 +1463,10 @@ WHERE
   AND coordinate = 'H1'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H3'
   ),
@@ -1476,10 +1476,10 @@ WHERE
   AND coordinate = 'H3'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H4'
   ),
@@ -1489,10 +1489,10 @@ WHERE
   AND coordinate = 'H4'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H5'
   ),
@@ -1502,10 +1502,10 @@ WHERE
   AND coordinate = 'H5'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H6'
   ),
@@ -1515,10 +1515,10 @@ WHERE
   AND coordinate = 'H6'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H7'
   ),
@@ -1528,10 +1528,10 @@ WHERE
   AND coordinate = 'H7'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H8'
   ),
@@ -1541,10 +1541,10 @@ WHERE
   AND coordinate = 'H8'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H9'
   ),
@@ -1554,10 +1554,10 @@ WHERE
   AND coordinate = 'H9'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H10'
   ),
@@ -1567,10 +1567,10 @@ WHERE
   AND coordinate = 'H10'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H11'
   ),
@@ -1580,10 +1580,10 @@ WHERE
   AND coordinate = 'H11'
 ;
 
-UPDATE `biosero_uat`.`destination_plate_wells`
+UPDATE `destination_plate_wells`
 SET
   source_plate_well_id = (
-    SELECT id FROM `biosero_uat`.`source_plate_wells` spw
+    SELECT id FROM `source_plate_wells` spw
     WHERE spw.barcode = 'Source02'
     AND spw.coordinate = 'H12'
   ),
@@ -1595,13 +1595,13 @@ WHERE
 
 -- finally, update the run history at the end of the run, setting state and
 -- when it completed
-UPDATE `biosero_uat`.`automation_system_runs`
+UPDATE `automation_system_runs`
 SET
   end_time = now(),
   state = 'completed',
   updated_at = now()
 WHERE automation_system_id = (
-  SELECT id FROM `biosero_uat`.`automation_systems`
+  SELECT id FROM `automation_systems`
     WHERE automation_system_name = 'CPA'
   )
 AND system_run_id = 1

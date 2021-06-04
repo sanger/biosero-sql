@@ -12,7 +12,6 @@ from config.defaults import *
 BASE_PATH = os.path.join(os.path.dirname(__file__), '..')
 
 SQL_FILES = [
-    'database_script.sql',
     'tables_script.sql',
     'views/view_run_level_view.sql',
     'views/view_sample_level_view.sql',
@@ -31,13 +30,13 @@ SQL_FILES = [
     'stored_procedures/update_run_state.sql'
 ]
 
-def create_database_connection():
+def create_database_connection(database_name):
     db_conn = mysql.connector.connect(
        host=DB_HOST,
        port=DB_PORT,
        user=DB_USER,
        passwd=DB_PWD,
-       database=DB_NAME
+       database=database_name
     )
     return db_conn
 
@@ -72,10 +71,54 @@ def execute_scripts_from_file(cursor, filepath):
                 print(e)
                 raise
 
+def reset_database():
+    try:
+        # open DB connection
+        db_conn = create_database_connection(None)
+
+        # disable auto-commit
+        db_conn.autocommit = False
+
+        # Get a cursor
+        cursor = db_conn.cursor()
+
+        drop_statement = "DROP DATABASE IF EXISTS `%s`;" % DB_NAME
+        create_statement = "CREATE DATABASE IF NOT EXISTS `%s`;" % DB_NAME
+
+        reset_statements = [
+            drop_statement,
+            create_statement
+        ]
+
+        for statement in reset_statements:
+            print("- - - - - - - - - - - - - - - - -")
+            print("Executing SQL statement:\n%s" % statement)
+            print("- - - - - - - - - - - - - - - - -")
+            try:
+                cursor.execute(statement)
+            except Exception as e:
+                print(e)
+                raise
+
+        # commit changes
+        db_conn.commit()
+    except Exception as e:
+        print(e)
+    else:
+        print("==============")
+        print("Database Reset")
+        print("==============")
+    finally:
+        if db_conn is not None:
+            if db_conn.is_connected():
+                if cursor is not None:
+                    cursor.close()
+                db_conn.close()
+
 def setup_database(sqlfiles):
     try:
         # open DB connection
-        db_conn = create_database_connection()
+        db_conn = create_database_connection(DB_NAME)
 
         # Get a cursor
         cursor = db_conn.cursor()
@@ -96,8 +139,12 @@ def setup_database(sqlfiles):
         print("All SQL files executed")
         print("======================")
     finally:
-        cursor.close()
-        db_conn.close()
+        if db_conn is not None:
+            if db_conn.is_connected():
+                if cursor is not None:
+                    cursor.close()
+                db_conn.close()
 
 
+reset_database()
 setup_database(SQL_FILES)
