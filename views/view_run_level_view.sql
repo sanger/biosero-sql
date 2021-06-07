@@ -1,5 +1,5 @@
 -- Run Level View
-CREATE VIEW `biosero_uat`.`run_level_view` AS
+CREATE VIEW `run_level_view` AS
     SELECT
         asys.automation_system_manufacturer,
         asys.automation_system_name,
@@ -21,9 +21,9 @@ CREATE VIEW `biosero_uat`.`run_level_view` AS
             WHEN 'completed' THEN true
         END) AS completed_successfully,
         rc.configuration_used
-    FROM `biosero_uat`.`automation_system_runs` asysr
-    JOIN `biosero_uat`.`automation_systems` asys
+    FROM `automation_system_runs` asysr
+    JOIN `automation_systems` asys
         ON asysr.automation_system_id = asys.id
-    JOIN `biosero_uat`.`run_configurations` rc
+    JOIN `run_configurations` rc
         ON rc.automation_system_run_id = asysr.id
 ;
