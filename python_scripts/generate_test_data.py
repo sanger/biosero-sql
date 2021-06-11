@@ -79,7 +79,9 @@ def get_configuration_for_system(system_name) -> dict:
         return dict_result
 
 # Insert a run record
-def create_run_record(system_name, system_run_id, gbg_method_name, user_id):
+def create_run_record(system_name, gbg_method_name, user_id):
+    result = None
+    automation_system_run_id = -1
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -91,8 +93,8 @@ def create_run_record(system_name, system_run_id, gbg_method_name, user_id):
         cursor = db_conn.cursor()
 
         # Call stored procedure with system name as parameter
-        args = [system_name, system_run_id, gbg_method_name, user_id]
-        cursor.callproc('createRunRecord', args)
+        args = [system_name, gbg_method_name, user_id, -1]
+        result = cursor.callproc('createRunRecord', args)
 
         # commit changes
         db_conn.commit()
@@ -103,7 +105,8 @@ def create_run_record(system_name, system_run_id, gbg_method_name, user_id):
         if db_conn.is_connected():
             db_conn.rollback()
     else:
-        print("Created run record for id = %s" % system_run_id)
+        automation_system_run_id = result[3]
+        print("Created run record for id = %s" % automation_system_run_id)
     finally:
         if db_conn is not None:
             if db_conn.is_connected():
@@ -111,8 +114,10 @@ def create_run_record(system_name, system_run_id, gbg_method_name, user_id):
                     cursor.close()
                 db_conn.close()
 
+    return automation_system_run_id
+
 # Insert empty wells for the destination plate
-def create_empty_destination_plate_wells(system_name, system_run_id, dest_bc, well_coords):
+def create_empty_destination_plate_wells(automation_system_run_id, dest_bc, well_coords):
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -126,7 +131,7 @@ def create_empty_destination_plate_wells(system_name, system_run_id, dest_bc, we
         # Call stored procedure with parameters for each well
 
         for well_coord in well_coords:
-            args = [system_name, system_run_id, dest_bc, well_coord]
+            args = [automation_system_run_id, dest_bc, well_coord]
             cursor.callproc('createEmptyDestinationPlateWellsRecord', args)
 
         # commit changes
@@ -147,7 +152,7 @@ def create_empty_destination_plate_wells(system_name, system_run_id, dest_bc, we
                 db_conn.close()
 
 # Insert rows for the control plate
-def create_control_plate(system_name, system_run_id, control_plate_barcode, controls):
+def create_control_plate(automation_system_run_id, control_plate_barcode, controls):
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -160,7 +165,7 @@ def create_control_plate(system_name, system_run_id, control_plate_barcode, cont
 
         # Call stored procedure with parameters for each well
         for control in controls:
-            args = [system_name, system_run_id, control_plate_barcode, control['coordinate'], control['control']]
+            args = [automation_system_run_id, control_plate_barcode, control['coordinate'], control['control']]
             cursor.callproc('createControlPlateWellsRecord', args)
 
         # commit changes
@@ -172,7 +177,7 @@ def create_control_plate(system_name, system_run_id, control_plate_barcode, cont
         if db_conn.is_connected():
             db_conn.rollback()
     else:
-        print("Created control plate %s for run id %s" % (control_plate_barcode, system_run_id))
+        print("Created control plate %s for run id %s" % (control_plate_barcode, automation_system_run_id))
     finally:
         if db_conn is not None:
             if db_conn.is_connected():
@@ -181,7 +186,7 @@ def create_control_plate(system_name, system_run_id, control_plate_barcode, cont
                 db_conn.close()
 
 # Update the destination plate well after picking a control
-def update_destination_plate_well_for_control(system_name, system_run_id, destination_barcode, destination_coordinate, control_barcode, control_coordinate):
+def update_destination_plate_well_for_control(automation_system_run_id, destination_barcode, destination_coordinate, control_barcode, control_coordinate):
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -193,7 +198,7 @@ def update_destination_plate_well_for_control(system_name, system_run_id, destin
         cursor = db_conn.cursor()
 
         # Call stored procedure with parameters
-        args = [system_name, system_run_id, destination_barcode, destination_coordinate, control_barcode, control_coordinate]
+        args = [automation_system_run_id, destination_barcode, destination_coordinate, control_barcode, control_coordinate]
         cursor.callproc('updateDestinationPlateWellWithControl', args)
 
         # commit changes
@@ -214,13 +219,13 @@ def update_destination_plate_well_for_control(system_name, system_run_id, destin
                 db_conn.close()
 
 # This method is mocking the Sanger barcode creation process for destination plates
-def generate_destination_plate_barcode(system_run_id) -> str:
-    barcode = "DN%s" % str(system_run_id).zfill(8)
+def generate_destination_plate_barcode(automation_system_run_id) -> str:
+    barcode = "DN%s" % str(automation_system_run_id).zfill(8)
     return barcode
 
 # This method is mocking the Lighthouse barcode creation process for source plates
-def generate_source_plate_barcode(system_run_id, src_plate_index) -> str:
-    barcode = "DS%s%s" % (str(system_run_id).zfill(5), str(src_plate_index).zfill(4))
+def generate_source_plate_barcode(automation_system_run_id, src_plate_index) -> str:
+    barcode = "DS%s%s" % (str(automation_system_run_id).zfill(5), str(src_plate_index).zfill(4))
     return barcode
 
 # Choose a random coordinate from a list (and removes it from list)
@@ -233,7 +238,7 @@ def choose_random_coordinate(well_coords) -> str:
 # This mocks the LIMS source lookup API call to return a list of pickable samples
 # for a source plate
 # Sample identifiers are incremented to avoid duplicates
-def create_random_pickable_samples(system_run_id, sample_uuid_index):
+def create_random_pickable_samples(automation_system_run_id, sample_uuid_index):
     num_pickable_samples = random.randint(1, 96)
     pickable_samples = []
     src_well_coords = WELL_COORDS.copy()
@@ -243,7 +248,7 @@ def create_random_pickable_samples(system_run_id, sample_uuid_index):
             {
                 'source_coordinate': src_coord,
                 'sample_id': str(uuid.uuid4()),
-                'rna_id': "RNA-S-%s-%s" % (str(system_run_id).zfill(5), str(sample_uuid_index).zfill(8)),
+                'rna_id': "RNA-S-%s-%s" % (str(automation_system_run_id).zfill(5), str(sample_uuid_index).zfill(8)),
                 'lab_id': 'MK'
             }
         )
@@ -327,7 +332,7 @@ def get_pickable_samples_for_source_plate(barcode):
         return pickable_samples_in_db
 
 # Update the destination plate well for a picked source plate well
-def update_destination_plate_well_for_source(system_name, system_run_id, destination_barcode, destination_coordinate, source_barcode, source_coordinate):
+def update_destination_plate_well_for_source(automation_system_run_id, destination_barcode, destination_coordinate, source_barcode, source_coordinate):
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -339,7 +344,7 @@ def update_destination_plate_well_for_source(system_name, system_run_id, destina
         cursor = db_conn.cursor()
 
         # Call stored procedure with parameters
-        args = [system_name, system_run_id, destination_barcode, destination_coordinate, source_barcode, source_coordinate]
+        args = [automation_system_run_id, destination_barcode, destination_coordinate, source_barcode, source_coordinate]
         cursor.callproc('updateDestinationPlateWellWithSource', args)
 
         # commit changes
@@ -360,7 +365,7 @@ def update_destination_plate_well_for_source(system_name, system_run_id, destina
                 db_conn.close()
 
 # Update the run record at the end of the run
-def update_run_record(system_name, system_run_id, new_state):
+def update_run_record(automation_system_run_id, new_state):
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -372,7 +377,7 @@ def update_run_record(system_name, system_run_id, new_state):
         cursor = db_conn.cursor()
 
         # Call stored procedure with parameters
-        args = [system_name, system_run_id, new_state]
+        args = [automation_system_run_id, new_state]
         cursor.callproc('updateRunState', args)
 
         # commit changes
@@ -384,50 +389,16 @@ def update_run_record(system_name, system_run_id, new_state):
         if db_conn.is_connected():
             db_conn.rollback()
     else:
-        print("Updated run record id %s with state %s" % (system_run_id, new_state))
+        print("Updated run record id %s with state %s" % (automation_system_run_id, new_state))
     finally:
         if db_conn is not None:
             if db_conn.is_connected():
                 if cursor is not None:
                     cursor.close()
                 db_conn.close()
-
-# Fetch the last run id used
-def get_last_run_id() -> int:
-    last_run_id = -1
-    try:
-        # open DB connection
-        db_conn = create_database_connection()
-
-        # Get a cursor
-        cursor = db_conn.cursor()
-
-        # Call stored procedure, output will go into args[0]
-        args = [0]
-        result_args = cursor.callproc('getLastSystemRunId', args)
-        last_run_id = result_args[0]
-        # on a fresh database this returns None
-        if last_run_id is None:
-            last_run_id = 0
-
-    except Exception as e:
-        print(e)
-
-        # reverting changes because of exception
-        if db_conn.is_connected():
-            db_conn.rollback()
-    else:
-        print("Fetched last run id %s" % last_run_id)
-    finally:
-        if db_conn is not None:
-            if db_conn.is_connected():
-                if cursor is not None:
-                    cursor.close()
-                db_conn.close()
-        return last_run_id
 
 # Insert a run event record
-def create_run_event_record(system_name, system_run_id, event_type, event):
+def create_run_event_record(automation_system_run_id, event_type, event):
     try:
         # open DB connection
         db_conn = create_database_connection()
@@ -439,7 +410,7 @@ def create_run_event_record(system_name, system_run_id, event_type, event):
         cursor = db_conn.cursor()
 
         # Call stored procedure with parameters
-        args = [system_name, system_run_id, event_type, event]
+        args = [automation_system_run_id, event_type, event]
         cursor.callproc('createRunEventRecord', args)
 
         # commit changes
@@ -474,34 +445,32 @@ for dest_index in range(NUMBER_DESTINATION_PLATES_TO_MAKE):
         print("Aborting, no configuration selected")
         break
     # [SP] Create run (run id = run_id_index) and run_configuration rows
-    last_run_id = get_last_run_id()
-    if last_run_id == -1:
-        print("Aborting, could not fetch last run id")
+    automation_system_run_id = create_run_record(SYSTEM_NAME, GBG_METHOD_NAME, USER_ID)
+    if automation_system_run_id < 0:
+        print("Aborting, no run set up")
         break
-    system_run_id = last_run_id + 1
-    print("Create a new run record for system_run_id = %s" % system_run_id)
-    create_run_record(SYSTEM_NAME, system_run_id, GBG_METHOD_NAME, USER_ID)
+    print("Created a new run record, automation_system_run_id (database id) = %s" % automation_system_run_id)
     # [SP] Insert destination plate 96 empty rows
     dest_wells = WELL_COORDS.copy()
-    dest_bc = generate_destination_plate_barcode(system_run_id)
-    create_empty_destination_plate_wells(SYSTEM_NAME, system_run_id, dest_bc, dest_wells)
+    dest_bc = generate_destination_plate_barcode(automation_system_run_id)
+    create_empty_destination_plate_wells(automation_system_run_id, dest_bc, dest_wells)
     # Insert control plate rows using config
     # [SP] Insert controls - from config control coordinates =
     # [{coordinate: <positive coord>, control: 'positive'},{coordinate: <negative coord>, control: 'negative'}
     pos_control_coord = configuration['control_coordinate_positive']
     neg_control_coord = configuration['control_coordinate_negative']
     controls = [{'coordinate': pos_control_coord, 'control': 'positive'},{'coordinate': neg_control_coord, 'control': 'negative'}]
-    create_control_plate(SYSTEM_NAME, system_run_id, CONTROL_PLATE_BC, controls)
+    create_control_plate(automation_system_run_id, CONTROL_PLATE_BC, controls)
     print("Control plate coords: Pos in %s, neg in %s" % (pos_control_coord, neg_control_coord))
     # Update destination plate rows for controls
     pos_control_dest_coord = choose_random_coordinate(dest_wells)
     neg_control_dest_coord = choose_random_coordinate(dest_wells)
     # For Positive
     # [SP] Update destination with pos control - dest coord = random coord from (empty wells - excluded wells from config)
-    update_destination_plate_well_for_control(SYSTEM_NAME, system_run_id, dest_bc, pos_control_dest_coord, CONTROL_PLATE_BC, pos_control_coord)
+    update_destination_plate_well_for_control(automation_system_run_id, dest_bc, pos_control_dest_coord, CONTROL_PLATE_BC, pos_control_coord)
     # For Negative
     # [SP] Update destination with neg control - dest coord = random coord from (empty wells - excluded wells from config)
-    update_destination_plate_well_for_control(SYSTEM_NAME, system_run_id, dest_bc, neg_control_dest_coord, CONTROL_PLATE_BC, neg_control_coord)
+    update_destination_plate_well_for_control(automation_system_run_id, dest_bc, neg_control_dest_coord, CONTROL_PLATE_BC, neg_control_coord)
 
     src_plate_index = 0
     pickable_samples = []
@@ -515,8 +484,8 @@ for dest_index in range(NUMBER_DESTINATION_PLATES_TO_MAKE):
                 # mock LIMS lookup - create list of pickable samples of random size 1-96
                 # e.g. has_plate_map: true, pickable_samples: [{source_coordinate: A1, sample_id: S000001, rna_id: R00001, lab_id: MK}]
                 src_plate_index += 1
-                current_source_barcode = generate_source_plate_barcode(system_run_id, src_plate_index)
-                pickable_samples = create_random_pickable_samples(system_run_id, sample_uuid_index)
+                current_source_barcode = generate_source_plate_barcode(automation_system_run_id, src_plate_index)
+                pickable_samples = create_random_pickable_samples(automation_system_run_id, sample_uuid_index)
                 # [SP] Insert new source rows (pickable_samples)
                 create_source_plate(current_source_barcode, pickable_samples)
             else:
@@ -533,7 +502,7 @@ for dest_index in range(NUMBER_DESTINATION_PLATES_TO_MAKE):
             if len(dest_wells) > 0:
                 #   print("Length destination wells = %s" % len(dest_wells))
                 # [SP] Update destination plate row at coord empty wells[0] to source[src_index]
-                update_destination_plate_well_for_source(SYSTEM_NAME, system_run_id, dest_bc, dest_wells.pop(0), current_source_barcode, pickable_sample['source_coordinate'])
+                update_destination_plate_well_for_source(automation_system_run_id, dest_bc, dest_wells.pop(0), current_source_barcode, pickable_sample['source_coordinate'])
             else:
                 # destination is full
                 destination_completed = True
@@ -552,11 +521,11 @@ for dest_index in range(NUMBER_DESTINATION_PLATES_TO_MAKE):
     # Add an example event to test the run event stored procedure
     event_type = "info"
     event = '{"code":"200","message":"run completed","other":"some information"}'
-    create_run_event_record(SYSTEM_NAME, system_run_id, event_type, event)
+    create_run_event_record(automation_system_run_id, event_type, event)
 
     # [SP] Update run log to completed at the end of the run
     new_state = "completed"
-    update_run_record(SYSTEM_NAME, system_run_id, new_state)
+    update_run_record(automation_system_run_id, new_state)
 
 print("--------------------")
 print("Data setup completed")

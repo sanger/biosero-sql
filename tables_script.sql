@@ -12,9 +12,8 @@ ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_c
 
 -- Automation system runs table
 CREATE TABLE IF NOT EXISTS `automation_system_runs` (
-  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row, used by biosero as automation_system_run_id',
   `automation_system_id` INT NOT NULL COMMENT 'the foreign key id from the automation systems table',
-  `system_run_id` INT NOT NULL COMMENT 'the run id as used by the workcell software',
   `method` VARCHAR(255) NOT NULL COMMENT 'the name of the method running on the workcell, including a version number',
   `user_id` VARCHAR(255) NOT NULL COMMENT 'the user id of the lab staff member performing the run',
   `start_time` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the date time when the run started',
@@ -24,8 +23,7 @@ CREATE TABLE IF NOT EXISTS `automation_system_runs` (
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'the datetime when this row was updated in the database',
   PRIMARY KEY (`id`),
   FOREIGN KEY (automation_system_id)
-  REFERENCES `automation_systems`(`id`),
-  CONSTRAINT `automation_system_run_id` UNIQUE (`system_run_id`,`automation_system_id`)
+  REFERENCES `automation_systems`(`id`)
 ) COMMENT='This table contains one row per run on an automation system.'
 ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
