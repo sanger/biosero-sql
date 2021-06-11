@@ -16,7 +16,6 @@ Scripts to create/update the schema required for the cherrytrack database.
   * [Configurations](#configurations)
   * [Select unpicked wells for a source barcode e.g. if the source is a partial](#selects-unpicked-wells-for-a-source-barcode-eg-if-the-source-is-a-partial)
   * [Select empty well coordinates in a destination plate barcode](#select-empty-well-coordinates-in-a-destination-plate-barcode)
-  * [Example usage queries for use case 1 from the URS](#example-usage-queries-for-use-case-1-from-the-URS)
   * [Example use of views](#example-use-of-views)
 - [Python Scripts](#python-scripts)
 - [Miscellaneous](#miscellaneous)
@@ -56,7 +55,6 @@ Stored procedures
 - createSourcePlateWellRecord here: [create_source_plate_well_record.sql](/stored_procedures/create_source_plate_well_record.sql)
 - getConfigurationForSystem here: [get_configuration_for_system.sql](/stored_procedures/get_configuration_for_system.sql)
 - getDetailsForDestinationPlate here: [get_details_for_destination_plate.sql](/stored_procedures/get_details_for_destination_plate.sql)
-- getLastSystemRunId here: [get_last_system_run_id.sql](/stored_procedures/get_last_system_run_id.sql)
 - getPickableSamplesForSourcePlate here: [get_pickable_samples_for_source_plate.sql](/stored_procedures/get_pickable_samples_for_source_plate.sql)
 - updateDestinationPlateWellWithControl here: [update_destination_plate_well_with_control.sql](/stored_procedures/update_destination_plate_well_with_control.sql)
 - updateDestinationPlateWellWithSource here: [update_destination_plate_well_with_source.sql](/stored_procedures/update_destination_plate_well_with_source.sql)
@@ -166,9 +164,7 @@ SELECT
 FROM
     `run_level_view`
 WHERE
-    automation_system_manufacturer = 'biosero'
-    AND automation_system_name = 'CPA'
-    AND system_run_id = 1
+    automation_system_run_id = 1
 ;
 ```
 
@@ -180,10 +176,8 @@ SELECT
 FROM
     `sample_level_view`
 WHERE
-    automation_system_manufacturer = 'biosero'
-    AND automation_system_name = 'CPA'
-    AND system_run_id = 1
-ORDER BY system_run_id, destination_barcode, destination_coordinate
+    automation_system_run_id = 1
+ORDER BY automation_system_run_id, destination_barcode, destination_coordinate
 ;
 ```
 ## Python Scripts

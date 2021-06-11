@@ -4,7 +4,7 @@ CREATE VIEW `run_level_view` AS
         asys.automation_system_manufacturer,
         asys.automation_system_name,
         asys.liquid_handler_serial_number,
-        asysr.system_run_id,
+        asysr.id AS automation_system_run_id,
         asysr.method,
         asysr.user_id,
         asysr.start_time,

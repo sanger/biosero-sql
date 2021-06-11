@@ -3,7 +3,7 @@ CREATE VIEW `sample_level_view` AS
     SELECT
         asys.automation_system_manufacturer,
         asys.automation_system_name,
-        asysr.system_run_id,
+        asysr.id AS automation_system_run_id,
         asysr.method,
         dpw.barcode AS destination_barcode,
         dpw.coordinate AS destination_coordinate,
