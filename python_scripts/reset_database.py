@@ -3,7 +3,7 @@
 # inserts example data into the automation_systems and configurations tables.
 # It does this by running the SQL files found elsewhere in this repository.
 
-import mysql.connector
+import mysql.connector # use command 'pip install mysql-connector-python'
 import os
 import re
 
@@ -29,6 +29,14 @@ SQL_FILES = [
     'stored_procedures/update_destination_plate_well_with_source.sql',
     'stored_procedures/update_run_state.sql'
 ]
+
+
+def show_warning():
+    val = input(f"CARE! Are you sure you want to reset the database {DB_NAME} on {DB_HOST}? Enter 'Yes' to continue: ")
+    if (val != "Yes"):
+        print("Aborting")
+        exit()
+
 
 def create_database_connection(database_name):
     db_conn = mysql.connector.connect(
@@ -146,5 +154,6 @@ def setup_database(sqlfiles):
                 db_conn.close()
 
 
+show_warning()
 reset_database()
 setup_database(SQL_FILES)
