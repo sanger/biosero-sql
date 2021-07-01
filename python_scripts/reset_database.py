@@ -3,7 +3,7 @@
 # inserts example data into the automation_systems and configurations tables.
 # It does this by running the SQL files found elsewhere in this repository.
 
-import mysql.connector # use command 'pip install mysql-connector-python'
+import mysql.connector
 import os
 import re
 
