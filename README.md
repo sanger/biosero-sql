@@ -28,6 +28,8 @@ Scripts to create/update the schema required for the cherrytrack database.
 
 ## List of tables and views
 
+DEPRECATED: USE CHERRYTRACK REPOSITORY
+
 Tables
 - configurations - one row per configuration key value pair per system
 - automation_systems - one row per automation system
@@ -47,6 +49,8 @@ Table and view descriptions can be found here: [table_and_view_descriptions.md](
 
 ## List of stored procedures
 
+DEPRECATED: USE CHERRYTRACK REPOSITORY
+
 Stored procedures
 - createControlPlateWellsRecord here: [create_control_plate_wells_record.sql](/stored_procedures/create_control_plate_wells_record.sql)
 - createEmptyDestinationPlateWellsRecord here: [create_empty_destination_plate_wells_record.sql](/stored_procedures/create_empty_destination_plate_wells_record.sql)
@@ -62,15 +66,21 @@ Stored procedures
 
 ## Database creation
 
+DEPRECATED: USE CHERRYTRACK REPOSITORY
+
 The easiest way to create the database (and associated views and stored procedures) is via the python scripts here: [Python Scripts](#python-scripts)
 
 Alternatively you can use the database creation scripts are found in [database_script.sql](database_script.sql). NB. Change the 'database name' placeholder.
 
 ## Table creation script
 
+DEPRECATED: USE CHERRYTRACK REPOSITORY
+
 The required table creation scripts are found in [tables_script.sql](tables_script.sql).
 
 ## View creation scripts
+
+DEPRECATED: USE CHERRYTRACK REPOSITORY
 
 The required view creation scripts are found in:
 - [view_run_level_view.sql](views/view_run_level_view.sql)
@@ -182,11 +192,15 @@ ORDER BY automation_system_run_id, destination_barcode, destination_coordinate
 ```
 ## Python Scripts
 
-A python script has been included to reset the database(CARE!) here:
-[reset_database.py](/python_scripts/reset_database.py).
-
 A python script has been included to demonstrate use of the stored procedures during a typical run to create test data here:
 [generate_test_data.py](/python_scripts/generate_test_data.py).
+
+A python script has been included to act as an integration test for both use of the stored procedures and calls to the lighthouse API during a typical run here: [generate_test_data.py](/python_scripts/integration_test_with_api.py)
+
+DEPRECATED: USE CHERRYTRACK REPOSITORY
+
+A python script has been included to reset the database(CARE!) here:
+[reset_database.py](/python_scripts/reset_database.py).
 
 ## Miscellaneous
 

@@ -1,4 +1,5 @@
 # Tables
+DEPRECATED: USE CHERRYTRACK REPOSITORY
 See [tables_script.sql](tables_script.sql).
 
 ## Configurations table

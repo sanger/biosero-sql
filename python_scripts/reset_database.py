@@ -1,3 +1,5 @@
+# DEPRECATED: USE CHERRYTRACK REPOSITORY
+
 # CARE: This script DROPS and RECREATES the database.
 # It resets the database, builds the tables, views and stored procedures, and
 # inserts example data into the automation_systems and configurations tables.

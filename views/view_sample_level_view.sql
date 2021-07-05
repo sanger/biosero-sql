@@ -1,3 +1,4 @@
+-- DEPRECATED: USE CHERRYTRACK REPOSITORY
 -- Sample Level View
 CREATE VIEW `sample_level_view` AS
     SELECT
