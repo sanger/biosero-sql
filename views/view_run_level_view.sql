@@ -1,3 +1,4 @@
+-- DEPRECATED: USE CHERRYTRACK REPOSITORY
 -- Run Level View
 CREATE VIEW `run_level_view` AS
     SELECT

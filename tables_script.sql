@@ -1,3 +1,4 @@
+-- DEPRECATED: USE CHERRYTRACK REPOSITORY
 -- Automation systems table
 CREATE TABLE IF NOT EXISTS `automation_systems` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT 'unique database identifier for this row',

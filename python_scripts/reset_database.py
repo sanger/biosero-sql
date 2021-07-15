@@ -1,3 +1,5 @@
+# DEPRECATED: USE CHERRYTRACK REPOSITORY
+
 # CARE: This script DROPS and RECREATES the database.
 # It resets the database, builds the tables, views and stored procedures, and
 # inserts example data into the automation_systems and configurations tables.
@@ -22,6 +24,7 @@ SQL_FILES = [
     'stored_procedures/create_run_record.sql',
     'stored_procedures/create_run_event_record.sql',
     'stored_procedures/create_source_plate_well_record.sql',
+    'stored_procedures/does_source_plate_exist.sql',
     'stored_procedures/get_configuration_for_system.sql',
     'stored_procedures/get_details_for_destination_plate.sql',
     'stored_procedures/get_pickable_samples_for_source_plate.sql',

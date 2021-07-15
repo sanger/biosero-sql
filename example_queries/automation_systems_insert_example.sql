@@ -7,6 +7,6 @@ INSERT INTO `automation_systems` (
   updated_at
 )
 VALUES
-('CPA', 'biosero', 'LHS000001', now(), now()),
-('CPB', 'biosero', 'LHS000001', now(), now())
+('CPA', 'biosero', '908G', now(), now()),
+('CPB', 'biosero', '973G', now(), now())
 ;

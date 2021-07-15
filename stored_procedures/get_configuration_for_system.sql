@@ -1,3 +1,4 @@
+-- DEPRECATED: USE CHERRYTRACK REPOSITORY
 -- drop the stored procedure
 DROP PROCEDURE IF EXISTS `getConfigurationForSystem`;
 
