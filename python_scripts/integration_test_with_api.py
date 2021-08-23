@@ -38,10 +38,9 @@ from config.defaults import *
 # for creating a partial destination:
 # SOURCE_PLATE_BARCODES = ['<source bc 40 pickable samples>']
 
-# SOURCE_PLATE_BARCODES = []
 SOURCE_PLATE_BARCODES = ['TEST-111524', 'bc_no_pm', 'TEST-111525', 'TEST-112104', '', 'TEST-111526']
 
-GBG_METHOD_NAME = 'example method name v1.2'
+GBG_METHOD_NAME = 'PSD integration test with API'
 USER_ID = 'ab12'
 SYSTEM_NAME = 'CPA'
 CONTROL_PLATE_BC = 'DN999999999'
@@ -304,8 +303,41 @@ def create_source_plate(source_barcode, pickable_samples):
                     cursor.close()
                 db_conn.close()
 
+# Check whether source plate exists
+def does_source_plate_exist(source_barcode):
+    plate_exists = None
+    try:
+        # open DB connection
+        db_conn = create_database_connection()
+
+        # Get a cursor
+        cursor = db_conn.cursor()
+
+        # Call stored procedure with source barcode
+        args = [source_barcode]
+
+        cursor.callproc('doesSourcePlateExist', args)
+
+        # Process the result
+        for result in cursor.stored_results(): # only one result
+            # this stored proc returns 0 or 1
+            result = result.fetchone() # array of key value pairs
+            plate_exists = result[0]
+    except Exception as e:
+        print(e)
+    else:
+        print("Checked if source plate exists for barcode %s" % barcode)
+
+    finally:
+        if db_conn is not None:
+            if db_conn.is_connected():
+                if cursor is not None:
+                    cursor.close()
+                db_conn.close()
+        return plate_exists
+
 # Fetch the remaining pickable samples for a source plate
-def get_pickable_samples_for_source_plate(barcode):
+def remaining_pickable_samples_for_source_plate(barcode):
     pickable_samples = []
     try:
         # open DB connection
@@ -324,7 +356,7 @@ def get_pickable_samples_for_source_plate(barcode):
             for well in wells:
                 pickable_samples.append(
                     {
-                        'source_coordinate': well['coordinate'],
+                        'source_coordinate_unpadded': well['coordinate'],
                         'sample_id': well['sample_id'],
                         'rna_id': well['rna_id'],
                         'lab_id': well['lab_id']
@@ -444,7 +476,7 @@ def create_run_event_record(automation_system_run_id, event_type, event):
                     cursor.close()
                 db_conn.close()
 
-def call_lighthouse_lims_lookup(source_barcode):
+def get_source_plate_from_lims(source_barcode):
     print(f"Getting source plate information for barcode {source_barcode}")
 
     lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/plates?barcodes={source_barcode}"
@@ -643,44 +675,53 @@ while not destination_completed:
                     current_source_barcode = None
 
             if current_source_barcode != None:
-                has_plate_map = False
+                # first check if source plate is already in cherrytrack i.e. partial source from previous run
+                source_exists = does_source_plate_exist(current_source_barcode)
 
-                # [API - LIMS Lookup for current_source_barcode]
-                response = call_lighthouse_lims_lookup(current_source_barcode)
-
-                has_plate_map = response['plates'][0]['has_plate_map']
-                print(f"has plate map = {has_plate_map}")
-
-                if has_plate_map:
-                    pickable_samples = response['plates'][0]['pickable_samples']
-                    # print(f"pickable_samples = {pickable_samples}")
+                if source_exists:
+                    print(f"Source barcode { current_source_barcode } already exists in Cherrytrack")
+                    pickable_samples = remaining_pickable_samples_for_source_plate(current_source_barcode)
                 else:
-                    # [API Call here - Source event no plate map data]
-                    # Lighthouse writes event to MLWH
-                    call_lighthouse_source_no_plate_map_data(automation_system_run_id, current_source_barcode)
+                    print(f"Source barcode { current_source_barcode } does NOT exist, fetch details")
 
-                    # increment counter
-                    src_plate_index += 1
-                    print(f"Counter incremented = {src_plate_index}")
+                    has_plate_map = False
 
-                    # get next source
-                    continue
+                    # [API - LIMS Lookup for current_source_barcode]
+                    response = get_source_plate_from_lims(current_source_barcode)
 
-            if (pickable_samples != None) and (len(pickable_samples) > 0):
-                print("Creating cherrytrack source plate rows")
-                # [SP] Insert new source rows (pickable_samples)
-                create_source_plate(current_source_barcode, pickable_samples)
-            else:
-                # [API Call here - Source event no pickable samples]
-                # Lighthouse writes event to MLWH
-                call_lighthouse_source_plate_no_pickable_samples(automation_system_run_id, current_source_barcode)
+                    has_plate_map = response['plates'][0]['has_plate_map']
+                    print(f"Source barcode { current_source_barcode } has plate map = { has_plate_map }")
 
-                # increment counter
-                src_plate_index += 1
-                print(f"Counter incremented = {src_plate_index}")
+                    if has_plate_map:
+                        pickable_samples = response['plates'][0]['pickable_samples']
+                        # print(f"pickable_samples = {pickable_samples}")
 
-                # get next source
-                continue
+                        if (pickable_samples != None) and (len(pickable_samples) > 0):
+                            print("Creating cherrytrack source plate rows")
+                            # [SP] Insert new source rows (pickable_samples)
+                            create_source_plate(current_source_barcode, pickable_samples)
+                        else:
+                            # [API Call here - Source event no pickable samples]
+                            # Lighthouse writes event to MLWH
+                            call_lighthouse_source_plate_no_pickable_samples(automation_system_run_id, current_source_barcode)
+
+                            # increment counter
+                            src_plate_index += 1
+                            print(f"Counter incremented = {src_plate_index}")
+
+                            # get next source
+                            continue
+                    else:
+                        # [API Call here - Source event no plate map data]
+                        # Lighthouse writes event to MLWH
+                        call_lighthouse_source_no_plate_map_data(automation_system_run_id, current_source_barcode)
+
+                        # increment counter
+                        src_plate_index += 1
+                        print(f"Counter incremented = {src_plate_index}")
+
+                        # get next source
+                        continue
         else:
             print("No remaining source plates")
             # [API Call here - Destination partial]
