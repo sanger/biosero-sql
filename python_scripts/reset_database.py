@@ -33,6 +33,14 @@ SQL_FILES = [
     'stored_procedures/update_run_state.sql'
 ]
 
+
+def show_warning():
+    val = input(f"CARE! Are you sure you want to reset the database {DB_NAME} on {DB_HOST}? Enter 'Yes' to continue: ")
+    if (val != "Yes"):
+        print("Aborting")
+        exit()
+
+
 def create_database_connection(database_name):
     db_conn = mysql.connector.connect(
        host=DB_HOST,
@@ -149,5 +157,6 @@ def setup_database(sqlfiles):
                 db_conn.close()
 
 
+show_warning()
 reset_database()
 setup_database(SQL_FILES)
