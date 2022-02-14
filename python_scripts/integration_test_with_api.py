@@ -764,7 +764,7 @@ while not destination_completed:
             if pickable_samples.index(pickable_sample) < (len(pickable_samples) - 1):
                 # source is a partial, store barcode for next run cycle
                 partial_source_barcode = current_source_barcode
-                num_rem_samples = (len(pickable_samples) - pickable_samples.index(pickable_sample) + 1)
+                num_rem_samples = (len(pickable_samples) - pickable_samples.index(pickable_sample))
                 print("Partial source %s recorded with %s pickable samples remaining" % (partial_source_barcode, num_rem_samples))
 
                 # [API call here - Source event partial]
