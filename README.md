@@ -204,6 +204,8 @@ pipenv shell
 
 Within this shell, you can navigate to the `python_scripts` directory to run them.
 
+Note that the scripts require access to external services.  To provide the details to connect to these, duplicate the file at `/python_scripts/config/defaults.template.py` removing the `.template` part of the filename and put credentials in there.
+
 ### List of scripts
 
 A python script has been included to demonstrate use of the stored procedures during a typical run to create test data here:
