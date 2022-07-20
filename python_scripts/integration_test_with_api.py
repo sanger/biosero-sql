@@ -15,14 +15,11 @@
 # Run this script at the command line using:
 # python3 integration_test_with_api.py
 
-import datetime
-import os
-import mysql.connector # use command 'pip install mysql-connector-python'
-import json
 import random
-import uuid
-import requests
 import sys
+
+import mysql.connector  # use command 'pip install mysql-connector-python'
+import requests
 
 from config.defaults import *
 
@@ -248,19 +245,19 @@ def generate_destination_plate_barcode() -> str:
 def generate_baracoda_barcodes(count, prefix) -> list:
     # Current accepted prefixes: https://github.com/sanger/baracoda/blob/4f001ecc771311ec85c07ea5f5e67e4c313adef5/tests/data/fixture_data.py
 
-    baracoda_url = f"http://{BARACODA_URL}/barcodes_group/{prefix}/new?count={count}"
+    baracoda_url = f"https://{BARACODA_URL}/barcodes_group/{prefix}/new?count={count}"
 
     try:
         print(f"Sending request for destination barcode to: {baracoda_url}")
-        response = requests.post(baracoda_url, data={})
+        response = requests.post(baracoda_url, data={}, verify=False) # Never use verify=False apart from in testing
 
         print(response.status_code, response.reason)
 
         response_json = response.json()
         barcodes = response_json["barcodes_group"]["barcodes"]
         return barcodes
-    except requests.ConnectionError:
-        raise requests.ConnectionError("Unable to access Baracoda")
+    except requests.ConnectionError as ex:
+        raise Exception("Unable to access Baracoda") from ex
 
 # Choose a random coordinate from a list (and removes it from list)
 def choose_random_coordinate(well_coords) -> str:
@@ -479,11 +476,11 @@ def create_run_event_record(automation_system_run_id, event_type, event):
 def get_source_plate_from_lims(source_barcode):
     print(f"Getting source plate information for barcode {source_barcode}")
 
-    lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/plates?barcodes={source_barcode}"
+    lighthouse_url = f"https://{LIGHTHOUSE_URL}" f"/plates?barcodes={source_barcode}"
 
     try:
         print(f"Attempting GET from {lighthouse_url}")
-        response = requests.get(lighthouse_url)
+        response = requests.get(lighthouse_url, verify=False) # Never use verify=False apart from in testing
 
         print(f"Response status code: {response.status_code}")
 
@@ -496,7 +493,7 @@ def post_event_to_lighthouse(url, payload):
         headers = {"Authorization": APP_KEY}
 
         print(f"Attempting POST to {url} with payload {payload}")
-        response = requests.post(url, headers=headers, data=payload)
+        response = requests.post(url, headers=headers, data=payload, verify=False) # Never use verify=False apart from in testing
 
         print(f"Response status code: {response.status_code}")
         return response.status_code
@@ -506,7 +503,7 @@ def post_event_to_lighthouse(url, payload):
 def call_lighthouse_source_plate_unrecognised(automation_system_run_id):
     print("calling API to record source plate unrecognisable event")
 
-    lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/events"
+    lighthouse_url = f"https://{LIGHTHOUSE_URL}" f"/events"
 
     payload = {
       "automation_system_run_id": automation_system_run_id,
@@ -518,7 +515,7 @@ def call_lighthouse_source_plate_unrecognised(automation_system_run_id):
 def call_lighthouse_source_no_plate_map_data(automation_system_run_id, source_barcode):
     print("calling API to record source plate no plate map data event")
 
-    lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/events"
+    lighthouse_url = f"https://{LIGHTHOUSE_URL}" f"/events"
 
     payload = {
       "automation_system_run_id": automation_system_run_id,
@@ -531,7 +528,7 @@ def call_lighthouse_source_no_plate_map_data(automation_system_run_id, source_ba
 def call_lighthouse_source_plate_no_pickable_samples(automation_system_run_id, source_barcode):
     print("calling API to record source plate no pickable samples event")
 
-    lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/events"
+    lighthouse_url = f"https://{LIGHTHOUSE_URL}" f"/events"
 
     payload = {
       "automation_system_run_id": automation_system_run_id,
@@ -544,7 +541,7 @@ def call_lighthouse_source_plate_no_pickable_samples(automation_system_run_id, s
 def call_lighthouse_source_partial(automation_system_run_id, source_barcode):
     print("calling API to record source plate partial event")
 
-    lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/events"
+    lighthouse_url = f"https://{LIGHTHOUSE_URL}" f"/events"
 
     payload = {
       "automation_system_run_id": automation_system_run_id,
@@ -557,7 +554,7 @@ def call_lighthouse_source_partial(automation_system_run_id, source_barcode):
 def call_lighthouse_source_completed(automation_system_run_id, source_barcode):
     print("calling API to record source plate completed event")
 
-    lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/events"
+    lighthouse_url = f"https://{LIGHTHOUSE_URL}" f"/events"
 
     payload = {
       "automation_system_run_id": automation_system_run_id,
@@ -570,7 +567,7 @@ def call_lighthouse_source_completed(automation_system_run_id, source_barcode):
 def call_lighthouse_destination_partial(automation_system_run_id, destination_barcode):
     print("calling API to record destination plate partial event")
 
-    lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/events"
+    lighthouse_url = f"https://{LIGHTHOUSE_URL}" f"/events"
 
     payload = {
       "automation_system_run_id": automation_system_run_id,
@@ -583,7 +580,7 @@ def call_lighthouse_destination_partial(automation_system_run_id, destination_ba
 def call_lighthouse_create_destination_plate(automation_system_run_id, destination_barcode):
     print("calling API to create destination plate")
 
-    lighthouse_url = f"http://{LIGHTHOUSE_URL}" f"/events"
+    lighthouse_url = f"https://{LIGHTHOUSE_URL}" f"/events"
 
     payload = {
       "automation_system_run_id": automation_system_run_id,
