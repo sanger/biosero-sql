@@ -190,7 +190,23 @@ WHERE
 ORDER BY automation_system_run_id, destination_barcode, destination_coordinate
 ;
 ```
+
 ## Python Scripts
+
+### Environment
+
+Scripts in this repo depend on certain pip packages to be installed.  To facilitate this, a pipenv environment has been configured to run the scripts in.  From the root of the repo:
+
+```shell
+pipenv install
+pipenv shell
+```
+
+Within this shell, you can navigate to the `python_scripts` directory to run them.
+
+Note that the scripts require access to external services.  To provide the details to connect to these, duplicate the file at `/python_scripts/config/defaults.template.py` removing the `.template` part of the filename and put credentials in there.
+
+### List of scripts
 
 A python script has been included to demonstrate use of the stored procedures during a typical run to create test data here:
 [generate_test_data.py](/python_scripts/generate_test_data.py).
