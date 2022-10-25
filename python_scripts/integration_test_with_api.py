@@ -496,6 +496,10 @@ def post_event_to_lighthouse(url, payload):
         response = requests.post(url, headers=headers, data=payload, verify=False) # Never use verify=False apart from in testing
 
         print(f"Response status code: {response.status_code}")
+
+        if response.status_code >= 300:
+            print(f"Response body: {response.text}")
+
         return response.status_code
     except requests.ConnectionError:
         raise requests.ConnectionError("Unable to access Lighthouse")
